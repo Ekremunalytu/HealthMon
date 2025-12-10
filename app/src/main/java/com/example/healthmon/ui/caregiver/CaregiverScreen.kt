@@ -56,12 +56,13 @@ fun CaregiverScreen() {
     var selectedNavItem by remember { mutableStateOf("home") }
     var selectedPatient by remember { mutableStateOf(0) }
     
-    // Simulated heart rate for selected patient
+    // Simulated heart rate for selected patient (updates every second)
     var heartRate by remember { mutableIntStateOf(78) }
     LaunchedEffect(selectedPatient) {
         while (true) {
-            delay(2000L)
-            heartRate = Random.nextInt(65, 95)
+            delay(1000L)  // Every second
+            val change = Random.nextInt(-3, 4)
+            heartRate = (heartRate + change).coerceIn(60, 100)
         }
     }
     

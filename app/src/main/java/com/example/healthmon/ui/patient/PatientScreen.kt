@@ -39,12 +39,14 @@ fun PatientScreen() {
     val context = LocalContext.current
     var selectedNavItem by remember { mutableStateOf("home") }
     
-    // Simulated heart rate (changes every 2 seconds)
+    // Simulated heart rate (updates every second with small variations)
     var heartRate by remember { mutableIntStateOf(78) }
     LaunchedEffect(Unit) {
         while (true) {
-            delay(2000L)
-            heartRate = Random.nextInt(70, 95)  // Realistic resting range
+            delay(1000L)  // Every second
+            // Small variation: ±3 BPM from current value, stay in 60-100 range
+            val change = Random.nextInt(-3, 4)
+            heartRate = (heartRate + change).coerceIn(60, 100)
         }
     }
     
