@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="tr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Hasta Bakıcı Paneli</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#36e27b",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                        "surface-dark": "#1a2c22", // A slightly lighter shade for cards
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "1rem", "lg": "1.5rem", "xl": "2rem", "2xl": "2.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
+        }
+
+        .glass-panel {
+            background: rgba(26, 44, 34, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+
+<body
+    class="font-display antialiased bg-background-light dark:bg-background-dark text-slate-900 dark:text-white selection:bg-primary selection:text-background-dark">
+    <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden pb-24">
+        <!-- Header Section -->
+        <header class="flex items-center justify-between px-6 pt-8 pb-4">
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <div class="h-12 w-12 rounded-full bg-cover bg-center border-2 border-white/10"
+                        data-alt="Portrait of a smiling female caregiver in scrubs"
+                        style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB8Z2ea1Q_Q44LaB53G-SgCiANw8MqOpnGUQpQLFFFs-CjxP-AItRCl8FZ2fqeNjThDnl6zc68-PwIKx3sG9WCnP8uB-Wb_TuA_eGhs5KOE-DpMiDVIY2YdsKMrK09koJkjLFvsUoGVUK0Aa7oBsLe4NMEinc4vFGkrXx4qbZHuKfPEJcmIF5uKMaItKvvo5cTj3TamLNeJf9mRvR-yG0DNvwQOrRiKkeztR8Kft3CX79LHVDqYPvRrBlrB1i73wzLkZwoxkSkmefo");'>
+                    </div>
+                    <div
+                        class="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-primary border-2 border-background-dark">
+                    </div>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-xs font-medium text-gray-400 uppercase tracking-wider">Hoşgeldin</span>
+                    <h1 class="text-xl font-bold leading-tight">Dr. Zeynep</h1>
+                </div>
+            </div>
+            <button
+                class="flex h-12 w-12 items-center justify-center rounded-full bg-surface-dark border border-white/5 text-white transition hover:bg-white/10 relative">
+                <span class="material-symbols-outlined">notifications</span>
+                <span class="absolute top-3 right-3 h-2 w-2 rounded-full bg-primary"></span>
+            </button>
+        </header>
+        <!-- Patient Selector (Chips) -->
+        <div class="flex gap-3 overflow-x-auto px-6 pb-6 no-scrollbar">
+            <!-- Active Patient -->
+            <button
+                class="flex shrink-0 items-center gap-3 rounded-full bg-primary py-2 pl-2 pr-5 text-background-dark shadow-[0_0_15px_rgba(54,226,123,0.3)] transition">
+                <div class="h-8 w-8 overflow-hidden rounded-full bg-background-dark/20">
+                    <img alt="Portrait of elderly woman patient" class="h-full w-full object-cover"
+                        data-alt="Portrait of elderly woman patient"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhoQUxPT1LP5iMZ0mn07-QVp3NQMH17foT4WtUrMZMBJozanG-TPhJKa_qy0IIm6Q3QxiyQq_FN2Dpf_yAWNG_Ko35VzxSXqaHO4S0hsowzPFzWxZrVXWz6hvXCGBmUiB8iFvodR1ZQn2n-IaCksIc_ZGCu-cJdZN9XgD7vwjPil9YOZQRCn9tUAszbyu9t9wz50r24t3vV-fqCdbzch1L_mG_oYyyEnwok194yEOVDm2Z4yJ4rm1I_86ID1rGvs8TOQVTb1xwuDs" />
+                </div>
+                <div class="flex flex-col items-start">
+                    <span class="text-sm font-bold leading-none">Ayşe Demir</span>
+                    <span class="text-[10px] font-medium opacity-80 mt-0.5">Aktif Hasta</span>
+                </div>
+            </button>
+            <!-- Inactive Patient 1 -->
+            <button
+                class="flex shrink-0 items-center gap-3 rounded-full bg-surface-dark border border-white/5 py-2 pl-2 pr-5 text-gray-400 transition hover:bg-white/5 hover:text-white">
+                <div class="h-8 w-8 overflow-hidden rounded-full bg-white/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-lg">person</span>
+                </div>
+                <span class="text-sm font-medium">Mehmet Yılmaz</span>
+            </button>
+            <!-- Inactive Patient 2 -->
+            <button
+                class="flex shrink-0 items-center gap-3 rounded-full bg-surface-dark border border-white/5 py-2 pl-2 pr-5 text-gray-400 transition hover:bg-white/5 hover:text-white">
+                <div class="h-8 w-8 overflow-hidden rounded-full bg-white/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-lg">person</span>
+                </div>
+                <span class="text-sm font-medium">Ali Kaya</span>
+            </button>
+        </div>
+        <!-- Main Content -->
+        <main class="flex flex-col gap-6 px-6">
+            <!-- Live Heart Rate Chart -->
+            <div class="glass-panel rounded-2xl p-6 relative overflow-hidden group">
+                <!-- Glowing accent -->
+                <div
+                    class="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 blur-3xl rounded-full pointer-events-none">
+                </div>
+                <div class="relative z-10 flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div
+                                class="flex items-center justify-center w-8 h-8 rounded-full bg-red-500/20 text-red-400 animate-pulse">
+                                <span class="material-symbols-outlined text-lg">favorite</span>
+                            </div>
+                            <h2 class="text-base font-medium text-gray-300">Kalp Atışı</h2>
+                        </div>
+                        <span
+                            class="flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-xs font-bold text-primary">
+                            <span class="h-1.5 w-1.5 rounded-full bg-primary animate-ping"></span>
+                            CANLI
+                        </span>
+                    </div>
+                    <div class="mt-2 flex items-baseline gap-2">
+                        <span class="text-5xl font-bold text-white tracking-tight">86</span>
+                        <span class="text-lg font-medium text-gray-400">BPM</span>
+                    </div>
+                    <!-- Chart Area -->
+                    <div class="relative mt-6 h-32 w-full">
+                        <svg class="h-full w-full overflow-visible" preserveaspectratio="none" viewbox="0 0 300 100">
+                            <defs>
+                                <lineargradient id="gradient-chart" x1="0" x2="0" y1="0" y2="1">
+                                    <stop offset="0%" stop-color="#36e27b" stop-opacity="0.2"></stop>
+                                    <stop offset="100%" stop-color="#36e27b" stop-opacity="0"></stop>
+                                </lineargradient>
+                            </defs>
+                            <!-- Line Path -->
+                            <path class="drop-shadow-[0_0_4px_rgba(54,226,123,0.5)]"
+                                d="M0,50 Q20,50 30,50 T50,40 T70,60 T90,30 T110,80 T130,45 T150,55 T170,35 T190,65 T210,40 T230,50 T250,50 T270,50 T300,50"
+                                fill="none" stroke="#36e27b" stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="3"></path>
+                            <!-- Fill Area -->
+                            <path
+                                d="M0,50 Q20,50 30,50 T50,40 T70,60 T90,30 T110,80 T130,45 T150,55 T170,35 T190,65 T210,40 T230,50 T250,50 T270,50 T300,50 V100 H0 Z"
+                                fill="url(#gradient-chart)" stroke="none"></path>
+                        </svg>
+                        <!-- Time Labels -->
+                        <div
+                            class="flex justify-between mt-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                            <span>10:00</span>
+                            <span>10:15</span>
+                            <span>10:30</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Activity Card -->
+                <div class="glass-panel flex flex-col justify-between rounded-2xl p-5">
+                    <div
+                        class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/20 text-blue-400 mb-2">
+                        <span class="material-symbols-outlined">directions_walk</span>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-400">Hareket</h3>
+                        <div class="flex items-end gap-1">
+                            <span class="text-2xl font-bold text-white">45</span>
+                            <span class="mb-1 text-sm font-medium text-gray-400">dk</span>
+                        </div>
+                    </div>
+                    <div class="mt-3 h-1.5 w-full rounded-full bg-white/10">
+                        <div class="h-1.5 w-3/4 rounded-full bg-blue-400"></div>
+                    </div>
+                    <p class="mt-2 text-xs font-medium text-primary">+10% hedef</p>
+                </div>
+                <!-- Goal Card -->
+                <div class="glass-panel flex flex-col justify-between rounded-2xl p-5">
+                    <div
+                        class="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/20 text-orange-400 mb-2">
+                        <span class="material-symbols-outlined">flag</span>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-400">Kalan Hedef</h3>
+                        <div class="flex items-end gap-1">
+                            <span class="text-2xl font-bold text-white">15</span>
+                            <span class="mb-1 text-sm font-medium text-gray-400">dk</span>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between text-xs text-gray-400 font-medium">
+                        <span>Bugün</span>
+                        <span class="text-white">60 dk</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Medical History Section -->
+            <div class="flex flex-col gap-4 pb-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-white">Tıbbi Geçmiş</h3>
+                    <button class="text-sm font-medium text-primary hover:text-primary/80">Tümü</button>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <!-- History Item 1 -->
+                    <div
+                        class="flex items-center gap-4 rounded-xl bg-surface-dark p-4 border border-white/5 hover:border-white/10 transition cursor-pointer">
+                        <div
+                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-purple-500/20 text-purple-400">
+                            <span class="material-symbols-outlined">medication</span>
+                        </div>
+                        <div class="flex flex-1 flex-col">
+                            <h4 class="text-base font-bold text-white">İlaç Takviyesi</h4>
+                            <p class="text-sm text-gray-400">Metformin 500mg</p>
+                        </div>
+                        <div class="flex flex-col items-end">
+                            <span class="text-sm font-bold text-white">09:00</span>
+                            <span class="text-xs text-green-400">Alındı</span>
+                        </div>
+                    </div>
+                    <!-- History Item 2 -->
+                    <div
+                        class="flex items-center gap-4 rounded-xl bg-surface-dark p-4 border border-white/5 hover:border-white/10 transition cursor-pointer">
+                        <div
+                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-teal-500/20 text-teal-400">
+                            <span class="material-symbols-outlined">blood_pressure</span>
+                        </div>
+                        <div class="flex flex-1 flex-col">
+                            <h4 class="text-base font-bold text-white">Tansiyon Ölçümü</h4>
+                            <p class="text-sm text-gray-400">Düzenli kontrol</p>
+                        </div>
+                        <div class="flex flex-col items-end">
+                            <span class="text-sm font-bold text-white">08:30</span>
+                            <span class="text-xs text-white/60">120/80</span>
+                        </div>
+                    </div>
+                    <!-- History Item 3 -->
+                    <div
+                        class="flex items-center gap-4 rounded-xl bg-surface-dark p-4 border border-white/5 hover:border-white/10 transition cursor-pointer">
+                        <div
+                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-yellow-500/20 text-yellow-400">
+                            <span class="material-symbols-outlined">restaurant</span>
+                        </div>
+                        <div class="flex flex-1 flex-col">
+                            <h4 class="text-base font-bold text-white">Kahvaltı</h4>
+                            <p class="text-sm text-gray-400">Diyet programı</p>
+                        </div>
+                        <div class="flex flex-col items-end">
+                            <span class="text-sm font-bold text-white">08:00</span>
+                            <span class="text-xs text-green-400">Tamamlandı</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- Bottom Navigation Bar -->
+        <nav class="fixed bottom-6 left-6 right-6 z-50">
+            <div class="glass-panel flex h-16 w-full items-center justify-between rounded-full px-8 shadow-2xl">
+                <button class="flex flex-col items-center gap-1 text-primary">
+                    <span class="material-symbols-outlined text-[28px] filled">home</span>
+                </button>
+                <button class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition">
+                    <span class="material-symbols-outlined text-[28px]">calendar_month</span>
+                </button>
+                <!-- Center SOS Button -->
+                <div class="-mt-8">
+                    <button
+                        class="flex h-14 w-14 items-center justify-center rounded-full bg-red-500 text-white shadow-[0_4px_20px_rgba(239,68,68,0.4)] transition hover:scale-105 active:scale-95">
+                        <span class="material-symbols-outlined text-[28px]">emergency</span>
+                    </button>
+                </div>
+                <button class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition">
+                    <span class="material-symbols-outlined text-[28px]">chat_bubble</span>
+                </button>
+                <button class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition">
+                    <span class="material-symbols-outlined text-[28px]">settings</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+</body>
+
+</html>

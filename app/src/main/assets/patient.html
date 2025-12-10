@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="tr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Hasta Paneli</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Material Symbols -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Tailwind Config -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#36e27b",
+                        "primary-dark": "#2ab562",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                        "surface-dark": "#1a2c22", // Slightly lighter than bg-dark
+                        "surface-card": "#23362b", // Even lighter for cards
+                        "alert": "#ff4d4d",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" },
+                    boxShadow: {
+                        "neon": "0 0 10px rgba(54, 226, 123, 0.3), 0 0 20px rgba(54, 226, 123, 0.1)",
+                        "alert": "0 0 15px rgba(255, 77, 77, 0.4)",
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Spline Sans', sans-serif;
+        }
+
+        /* Custom scrollbar hide for clean mobile look */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white antialiased transition-colors duration-200">
+    <div
+        class="mx-auto max-w-md w-full h-full min-h-screen flex flex-col relative overflow-hidden bg-background-light dark:bg-background-dark">
+        <!-- Header / Top Bar -->
+        <header class="flex items-center justify-between p-6 pb-2">
+            <div>
+                <p class="text-slate-500 dark:text-gray-400 text-sm font-medium">Hoş geldin,</p>
+                <h1 class="text-2xl font-bold tracking-tight">Ahmet Bey</h1>
+            </div>
+            <button
+                class="flex items-center justify-center size-10 rounded-full bg-surface-dark/10 dark:bg-surface-dark border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white transition hover:bg-primary/20">
+                <span class="material-symbols-outlined">settings</span>
+            </button>
+        </header>
+        <main class="flex-1 flex flex-col gap-6 px-4 pb-24 overflow-y-auto no-scrollbar pt-4">
+            <!-- Caregiver Card -->
+            <section class="w-full">
+                <div
+                    class="relative overflow-hidden rounded-xl bg-white dark:bg-surface-dark p-1 shadow-sm border border-slate-100 dark:border-white/5">
+                    <div class="flex items-center gap-4 p-3 bg-slate-50 dark:bg-surface-card rounded-[0.8rem]">
+                        <!-- Profile Image -->
+                        <div class="relative shrink-0">
+                            <div class="size-14 rounded-full bg-cover bg-center border-2 border-primary"
+                                data-alt="Portrait of a smiling nurse wearing scrubs"
+                                style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAgwbc7qrlsdqlw6dXJ0662tWuGg95Gx6Uxk4L6RqcxwgqFEFP8zqXuTp6pCA9QKtqJNG2mIHzZSZLSfSLEThxuawpwjFvy3rq_EZGFJFwFcBY232-1sHK5pstq2Nze8y4IgHuqpaH9PSp5IbVWe1UODpL1XIGVLP5iqr2CGwUphqwn_TrpSNBIK3WZlNsJUWQbJ-uDZ0_YMSPx6Jawp0hx_5qwp1o0ECvf2MVsXmEy9GhtoNKzSsG-lJ-420nBudrupPc2f5yqPZ4");'>
+                            </div>
+                            <div
+                                class="absolute bottom-0 right-0 size-4 bg-primary rounded-full border-2 border-slate-50 dark:border-surface-card">
+                            </div>
+                        </div>
+                        <!-- Text Info -->
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-base font-bold text-slate-900 dark:text-white truncate">Hemşire Ayşe Yılmaz
+                            </h3>
+                            <p class="text-xs text-primary font-medium uppercase tracking-wide">Hasta Bakıcınız</p>
+                        </div>
+                        <!-- Call Action -->
+                        <button
+                            class="group flex shrink-0 items-center justify-center size-12 rounded-full bg-primary shadow-neon active:scale-95 transition-all">
+                            <span
+                                class="material-symbols-outlined text-black font-bold group-hover:animate-pulse">call</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+            <!-- Live Heart Rate Chart -->
+            <section class="w-full">
+                <div
+                    class="flex flex-col gap-2 rounded-xl bg-white dark:bg-surface-dark p-5 shadow-sm border border-slate-100 dark:border-white/5">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span
+                                    class="material-symbols-outlined text-alert text-[20px] animate-pulse">favorite</span>
+                                <h3
+                                    class="text-sm font-medium text-slate-500 dark:text-gray-400 uppercase tracking-wider">
+                                    Canlı Nabız</h3>
+                            </div>
+                            <div class="flex items-baseline gap-2">
+                                <span
+                                    class="text-4xl font-bold text-slate-900 dark:text-white tracking-tighter">86</span>
+                                <span class="text-lg font-medium text-slate-400 dark:text-gray-500">BPM</span>
+                            </div>
+                        </div>
+                        <div
+                            class="px-2 py-1 rounded bg-green-500/10 text-primary text-xs font-bold border border-green-500/20">
+                            NORMAL
+                        </div>
+                    </div>
+                    <!-- SVG Chart -->
+                    <div class="w-full h-32 mt-4 relative">
+                        <!-- Grid lines -->
+                        <div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-10">
+                            <div class="w-full h-px bg-slate-400"></div>
+                            <div class="w-full h-px bg-slate-400"></div>
+                            <div class="w-full h-px bg-slate-400"></div>
+                        </div>
+                        <svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 300 100">
+                            <defs>
+                                <lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+                                    <stop offset="0%" stop-color="#36e27b" stop-opacity="0.4"></stop>
+                                    <stop offset="100%" stop-color="#36e27b" stop-opacity="0"></stop>
+                                </lineargradient>
+                            </defs>
+                            <!-- Line Path -->
+                            <path class="drop-shadow-[0_0_6px_rgba(54,226,123,0.6)]"
+                                d="M0,50 Q20,50 30,30 T60,50 T90,50 T120,20 T150,80 T180,50 T210,50 T240,30 T270,50 T300,50"
+                                fill="url(#chartGradient)" stroke="#36e27b" stroke-linecap="round"
+                                stroke-linejoin="round" stroke-width="3"></path>
+                            <!-- Pulsing Dot at the end -->
+                            <circle cx="300" cy="50" fill="#36e27b" r="4">
+                                <animate attributename="r" dur="1.5s" repeatcount="indefinite" values="4;8;4"></animate>
+                                <animate attributename="opacity" dur="1.5s" repeatcount="indefinite" values="1;0.5;1">
+                                </animate>
+                            </circle>
+                        </svg>
+                    </div>
+                    <div class="flex justify-between mt-2 text-xs text-slate-400 dark:text-gray-600 font-mono">
+                        <span>10:00</span>
+                        <span>10:15</span>
+                        <span>10:30</span>
+                        <span>Şimdi</span>
+                    </div>
+                </div>
+            </section>
+            <!-- Inactivity Status Section -->
+            <section class="grid grid-cols-1 gap-4">
+                <div
+                    class="rounded-xl bg-white dark:bg-surface-dark p-5 shadow-sm border border-slate-100 dark:border-white/5 flex flex-col gap-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="size-10 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500">
+                                <span class="material-symbols-outlined">accessibility_new</span>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-medium text-slate-500 dark:text-gray-400">Hareketsizlik Süresi
+                                </h3>
+                                <p class="text-xl font-bold text-slate-900 dark:text-white">45 dk</p>
+                            </div>
+                        </div>
+                        <div class="radial-progress text-primary text-xs font-bold" style="--value:70; --size:2.5rem;">
+                            70%</div>
+                    </div>
+                    <div class="w-full bg-slate-100 dark:bg-white/5 rounded-full h-2 overflow-hidden">
+                        <div class="bg-gradient-to-r from-orange-400 to-orange-500 h-full rounded-full"
+                            style="width: 45%"></div>
+                    </div>
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-white/5">
+                        <span class="text-xs text-slate-400">Hedef: 60 dk</span>
+                        <button
+                            class="text-sm font-bold text-primary hover:text-primary-dark transition flex items-center gap-1">
+                            Süreyi Ayarla
+                            <span class="material-symbols-outlined text-base">chevron_right</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <!-- Bottom Actions (Floating) -->
+        <div class="absolute bottom-6 left-0 w-full px-4 flex flex-col gap-3 z-20 pointer-events-none">
+            <!-- Emergency Button -->
+            <button
+                class="pointer-events-auto w-full group relative flex items-center justify-center gap-3 bg-alert hover:bg-red-600 text-white p-5 rounded-xl shadow-alert transition-all active:scale-[0.98]">
+                <div
+                    class="absolute inset-0 rounded-xl bg-white/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity">
+                </div>
+                <span class="material-symbols-outlined text-[28px] animate-bounce">sos</span>
+                <span class="text-lg font-bold tracking-wide uppercase">ACİL YARDIM ÇAĞIR</span>
+            </button>
+        </div>
+        <!-- Bottom Tab Bar Mockup -->
+        <nav
+            class="absolute bottom-0 left-0 w-full bg-white dark:bg-[#0c1611] border-t border-slate-100 dark:border-white/5 px-6 pb-6 pt-3 flex justify-between items-end z-10 rounded-t-lg">
+            <button class="flex flex-col items-center gap-1 text-primary">
+                <span class="material-symbols-outlined filled">home</span>
+                <span class="text-[10px] font-medium">Ana Sayfa</span>
+            </button>
+            <button
+                class="flex flex-col items-center gap-1 text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300">
+                <span class="material-symbols-outlined">ecg_heart</span>
+                <span class="text-[10px] font-medium">Sağlık</span>
+            </button>
+            <!-- Spacer for the big SOS button above -->
+            <div class="w-12"></div>
+            <button
+                class="flex flex-col items-center gap-1 text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300">
+                <span class="material-symbols-outlined">calendar_month</span>
+                <span class="text-[10px] font-medium">Takvim</span>
+            </button>
+            <button
+                class="flex flex-col items-center gap-1 text-slate-400 dark:text-gray-500 hover:text-slate-600 dark:hover:text-gray-300">
+                <span class="material-symbols-outlined">person</span>
+                <span class="text-[10px] font-medium">Profil</span>
+            </button>
+        </nav>
+        <!-- Background Gradient Blur Effect -->
+        <div
+            class="absolute top-[-10%] right-[-10%] w-64 h-64 bg-primary/20 rounded-full blur-[80px] pointer-events-none z-0">
+        </div>
+        <div
+            class="absolute bottom-[20%] left-[-10%] w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] pointer-events-none z-0">
+        </div>
+    </div>
+    <script>
+        // Simple script to toggle theme for demonstration if needed, 
+        // though the prompt implies a fixed dark preference or auto.
+        // Keeping it strictly to HTML/CSS as requested mostly.
+    </script>
+</body>
+
+</html>

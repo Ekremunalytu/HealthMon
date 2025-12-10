@@ -1,0 +1,566 @@
+package com.example.healthmon.ui.caregiver
+
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.healthmon.ui.components.HealthMonBottomNavBar
+import com.example.healthmon.ui.components.HealthMonNavItems
+import com.example.healthmon.ui.components.HeartRateChart
+import com.example.healthmon.ui.theme.*
+
+data class Patient(
+    val name: String,
+    val isActive: Boolean = false,
+    val emoji: String = "👤"
+)
+
+data class MedicalHistoryItem(
+    val title: String,
+    val subtitle: String,
+    val time: String,
+    val status: String,
+    val icon: ImageVector,
+    val iconColor: Color
+)
+
+@Composable
+fun CaregiverScreen() {
+    var selectedNavItem by remember { mutableStateOf("home") }
+    var selectedPatient by remember { mutableStateOf(0) }
+    
+    val patients = remember {
+        listOf(
+            Patient("Ayşe Demir", true, "👵"),
+            Patient("Mehmet Yılmaz", false),
+            Patient("Ali Kaya", false)
+        )
+    }
+    
+    val medicalHistory = remember {
+        listOf(
+            MedicalHistoryItem(
+                "İlaç Takviyesi",
+                "Metformin 500mg",
+                "09:00",
+                "Alındı",
+                Icons.Filled.Add,
+                Color(0xFFA855F7)
+            ),
+            MedicalHistoryItem(
+                "Tansiyon Ölçümü",
+                "Düzenli kontrol",
+                "08:30",
+                "120/80",
+                Icons.Filled.Favorite,
+                Color(0xFF14B8A6)
+            ),
+            MedicalHistoryItem(
+                "Kahvaltı",
+                "Diyet programı",
+                "08:00",
+                "Tamamlandı",
+                Icons.Filled.Home,
+                Color(0xFFF59E0B)
+            )
+        )
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BackgroundDark)
+    ) {
+        // Background glow effects
+        Box(
+            modifier = Modifier
+                .offset(x = 180.dp, y = (-80).dp)
+                .size(200.dp)
+                .blur(80.dp)
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(Primary.copy(alpha = 0.2f), Color.Transparent)
+                    )
+                )
+        )
+        
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 100.dp)
+        ) {
+            // Header
+            CaregiverHeader()
+            
+            // Patient Selector
+            PatientSelector(
+                patients = patients,
+                selectedIndex = selectedPatient,
+                onPatientSelected = { selectedPatient = it }
+            )
+            
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Heart Rate Chart
+                HeartRateChart(
+                    heartRate = 86,
+                    isNormal = true
+                )
+                
+                // Stats Grid
+                StatsGrid()
+                
+                // Medical History
+                MedicalHistorySection(items = medicalHistory)
+                
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+        
+        // Bottom Navigation
+        HealthMonBottomNavBar(
+            items = HealthMonNavItems.caregiverItems,
+            selectedRoute = selectedNavItem,
+            onItemSelected = { selectedNavItem = it },
+            onEmergencyClick = { /* TODO: Handle emergency */ },
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
+}
+
+@Composable
+private fun CaregiverHeader() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Profile image
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(Primary.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "👩‍⚕️", fontSize = 24.sp)
+                // Online indicator
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(12.dp)
+                        .clip(CircleShape)
+                        .background(BackgroundDark)
+                        .padding(2.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                            .background(Primary)
+                    )
+                }
+            }
+            
+            Column {
+                Text(
+                    text = "HOŞGELDİN",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextSecondaryDark,
+                    letterSpacing = 1.sp
+                )
+                Text(
+                    text = "Dr. Zeynep",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+        
+        // Notification button
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(SurfaceDark)
+                .clickable { /* TODO */ },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Notifications,
+                contentDescription = "Bildirimler",
+                tint = Color.White,
+                modifier = Modifier.size(24.dp)
+            )
+            // Notification badge
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = (-8).dp, y = 8.dp)
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(Primary)
+            )
+        }
+    }
+}
+
+@Composable
+private fun PatientSelector(
+    patients: List<Patient>,
+    selectedIndex: Int,
+    onPatientSelected: (Int) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        patients.forEachIndexed { index, patient ->
+            PatientChip(
+                patient = patient,
+                isSelected = index == selectedIndex,
+                onClick = { onPatientSelected(index) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun PatientChip(
+    patient: Patient,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val animatedScale by animateFloatAsState(
+        targetValue = if (isSelected) 1.02f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        label = "chip_scale"
+    )
+    
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(32.dp))
+            .background(
+                if (isSelected) Primary 
+                else SurfaceDark
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Avatar
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(
+                    if (isSelected) BackgroundDark.copy(alpha = 0.3f)
+                    else Color.White.copy(alpha = 0.1f)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (patient.isActive) {
+                Text(text = patient.emoji, fontSize = 16.sp)
+            } else {
+                Icon(
+                    imageVector = Icons.Filled.Person,
+                    contentDescription = null,
+                    tint = if (isSelected) BackgroundDark else TextSecondaryDark,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+        
+        Column {
+            Text(
+                text = patient.name,
+                style = MaterialTheme.typography.labelMedium,
+                color = if (isSelected) BackgroundDark else TextSecondaryDark,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+            )
+            if (isSelected && patient.isActive) {
+                Text(
+                    text = "Aktif Hasta",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = BackgroundDark.copy(alpha = 0.8f),
+                    fontSize = 10.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatsGrid() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Activity Card
+        StatCard(
+            modifier = Modifier.weight(1f),
+            icon = Icons.Filled.Person,
+            iconColor = InfoBlue,
+            title = "Hareket",
+            value = "45",
+            unit = "dk",
+            progressValue = 0.75f,
+            progressColor = InfoBlue,
+            subtitle = "+10% hedef",
+            subtitleColor = Primary
+        )
+        
+        // Goal Card
+        StatCard(
+            modifier = Modifier.weight(1f),
+            icon = Icons.Filled.Star,
+            iconColor = AlertOrange,
+            title = "Kalan Hedef",
+            value = "15",
+            unit = "dk",
+            extraInfo = "Bugün" to "60 dk"
+        )
+    }
+}
+
+@Composable
+private fun StatCard(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    iconColor: Color,
+    title: String,
+    value: String,
+    unit: String,
+    progressValue: Float? = null,
+    progressColor: Color = Primary,
+    subtitle: String? = null,
+    subtitleColor: Color = Primary,
+    extraInfo: Pair<String, String>? = null
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        SurfaceDark.copy(alpha = 0.8f),
+                        SurfaceDark.copy(alpha = 0.6f)
+                    )
+                )
+            )
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(iconColor.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+        
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodySmall,
+            color = TextSecondaryDark
+        )
+        
+        Row(
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = unit,
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextSecondaryDark,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+        }
+        
+        if (progressValue != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(Color.White.copy(alpha = 0.1f))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(progressValue)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(progressColor)
+                )
+            }
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = subtitleColor,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+        
+        if (extraInfo != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = extraInfo.first,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextSecondaryDark
+                )
+                Text(
+                    text = extraInfo.second,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MedicalHistorySection(items: List<MedicalHistoryItem>) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Tıbbi Geçmiş",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Tümü",
+                style = MaterialTheme.typography.labelMedium,
+                color = Primary,
+                modifier = Modifier.clickable { /* TODO */ }
+            )
+        }
+        
+        items.forEach { item ->
+            MedicalHistoryCard(item = item)
+        }
+    }
+}
+
+@Composable
+private fun MedicalHistoryCard(item: MedicalHistoryItem) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(SurfaceDark)
+            .clickable { /* TODO */ }
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(item.iconColor.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = item.icon,
+                contentDescription = null,
+                tint = item.iconColor,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.titleSmall,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = item.subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = TextSecondaryDark
+            )
+        }
+        
+        Column(
+            horizontalAlignment = Alignment.End
+        ) {
+            Text(
+                text = item.time,
+                style = MaterialTheme.typography.labelMedium,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = item.status,
+                style = MaterialTheme.typography.labelSmall,
+                color = if (item.status == "Alındı" || item.status == "Tamamlandı") Primary else Color.White.copy(alpha = 0.6f)
+            )
+        }
+    }
+}

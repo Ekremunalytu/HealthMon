@@ -1,29 +1,46 @@
-# Built application files
-*.apk
-*.aab
-*.ap_
-*.a_
+# Folders shared by the IDE
+.idea/*
 
-# Files for the ART/Dalvik VM
-*.dex
-
-# Built output directories
-/build
-/app/build
-
-# Android Studio/IntelliJ
-.idea/
 .gradle/
+
+# Build files
+build/
+*/build/
+
+# Local configuration files
 local.properties
-*.iml
-*.hprof
-captures/
 
 # Keystore files
 *.jks
 *.keystore
 
-# Gradle
-gradle-app.setting
-.gradletasknamecache
-.gradle-scan/
+# Log files
+*.log
+
+# Android Studio profiling data
+captures/
+.cxx/
+
+# Gradle build caches
+.build-cache/
+
+# Generated files
+generated/
+
+# User-specific files
+.DS_Store
+.tmp/
+caches/
+daemon/
+jdks/
+native/
+wrapper/
+workers/
+
+
+# Android Studio profiling data
+captures/
+.cxx/
+
+app/src/main/data/
+kotlin-profile/

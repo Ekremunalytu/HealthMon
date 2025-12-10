@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="tr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Giriş Ekranı</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>tailwind.config = { darkMode: "class", theme: { extend: { colors: { primary: "#39E079", "background-light": "#f6f8f7", "background-dark": "#122017", "surface-dark": "#1c2620", "text-secondary": "#9eb7a8" }, fontFamily: { display: "Spline Sans" }, borderRadius: { DEFAULT: "1rem", lg: "2rem", xl: "3rem", full: "9999px" } } } };</script>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+
+<body
+    class="font-display bg-background-light dark:bg-background-dark min-h-screen flex flex-col items-center justify-center p-4">
+    <!-- Main Container -->
+    <div class="w-full max-w-md mx-auto flex flex-col gap-6">
+        <!-- Header Section with Image and Title -->
+        <div class="flex flex-col items-center gap-4 text-center">
+            <!-- App Logo / Illustration -->
+            <div
+                class="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-2 shadow-[0_0_20px_rgba(54,226,123,0.15)] ring-1 ring-primary/20">
+                <span class="material-symbols-outlined text-primary" style="font-size: 48px;">medical_services</span>
+            </div>
+            <h1 class="text-slate-900 dark:text-white text-3xl font-bold tracking-tight">Hoş Geldiniz</h1>
+            <p class="text-slate-500 dark:text-text-secondary text-base font-normal">Sağlığınız kontrol altında, güvenle
+                giriş yapın.</p>
+        </div>
+        <!-- Role Switcher (Segmented Control) -->
+        <div class="w-full bg-slate-200 dark:bg-surface-dark p-1.5 rounded-full flex relative">
+            <!-- Background highlight for active state simulation (visual only in static HTML) -->
+            <!-- Note: In a real app, this would animate. Here we simulate 'Patient' being selected by default or just show distinct styles -->
+            <label class="flex-1 cursor-pointer">
+                <input checked="" class="peer sr-only" name="userType" type="radio" value="patient" />
+                <div
+                    class="flex items-center justify-center gap-2 py-3 px-4 rounded-full text-sm font-semibold transition-all duration-300 text-slate-500 dark:text-text-secondary peer-checked:bg-white dark:peer-checked:bg-[#2A3830] peer-checked:text-slate-900 dark:peer-checked:text-white peer-checked:shadow-sm">
+                    <span class="material-symbols-outlined text-[20px]">personal_injury</span>
+                    <span>Hasta</span>
+                </div>
+            </label>
+            <label class="flex-1 cursor-pointer">
+                <input class="peer sr-only" name="userType" type="radio" value="caregiver" />
+                <div
+                    class="flex items-center justify-center gap-2 py-3 px-4 rounded-full text-sm font-semibold transition-all duration-300 text-slate-500 dark:text-text-secondary peer-checked:bg-white dark:peer-checked:bg-[#2A3830] peer-checked:text-slate-900 dark:peer-checked:text-white peer-checked:shadow-sm">
+                    <span class="material-symbols-outlined text-[20px]">diversity_1</span>
+                    <span>Hasta Bakıcı</span>
+                </div>
+            </label>
+        </div>
+        <!-- Login Form -->
+        <form class="flex flex-col gap-5 mt-2" onsubmit="event.preventDefault(); handleLogin();">
+            <!-- Username Field -->
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-slate-700 dark:text-white ml-1">Kullanıcı Adı</label>
+                <div class="relative flex items-center">
+                    <span class="absolute left-4 text-slate-400 dark:text-text-secondary">
+                        <span class="material-symbols-outlined text-[20px]">person</span>
+                    </span>
+                    <input
+                        class="w-full pl-11 pr-4 py-4 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-[#3d5245] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-base"
+                        placeholder="Kullanıcı adınızı giriniz" type="text" />
+                </div>
+            </div>
+            <!-- Password Field -->
+            <div class="space-y-2">
+                <div class="flex justify-between items-center ml-1">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-white">Şifre</label>
+                    <a class="text-sm font-medium text-primary hover:text-primary/80 transition-colors" href="#">Şifremi
+                        Unuttum?</a>
+                </div>
+                <div class="relative flex items-center group">
+                    <span
+                        class="absolute left-4 text-slate-400 dark:text-text-secondary group-focus-within:text-primary transition-colors">
+                        <span class="material-symbols-outlined text-[20px]">lock</span>
+                    </span>
+                    <input
+                        class="w-full pl-11 pr-12 py-4 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-[#3d5245] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-base"
+                        placeholder="******" type="password" />
+                    <button
+                        class="absolute right-4 text-slate-400 dark:text-text-secondary hover:text-slate-600 dark:hover:text-white transition-colors flex items-center"
+                        type="button">
+                        <span class="material-symbols-outlined text-[20px]">visibility</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Submit Button -->
+            <button
+                class="w-full bg-primary hover:bg-primary/90 text-background-dark font-bold text-lg py-4 rounded-full transition-transform active:scale-[0.98] shadow-[0_4px_14px_0_rgba(54,226,123,0.39)] mt-2 flex items-center justify-center gap-2">
+                Giriş Yap
+                <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+            </button>
+        </form>
+        <!-- Divider -->
+        <div class="flex items-center gap-4 px-2">
+            <div class="h-px bg-slate-200 dark:bg-[#3d5245] flex-1"></div>
+            <span class="text-slate-400 dark:text-text-secondary text-sm">veya</span>
+            <div class="h-px bg-slate-200 dark:bg-[#3d5245] flex-1"></div>
+        </div>
+        <!-- Social / Sign Up -->
+        <div class="flex flex-col items-center gap-6">
+            <div class="flex gap-4 w-full justify-center">
+                <button
+                    class="flex items-center justify-center w-14 h-14 rounded-full bg-white dark:bg-surface-dark border border-slate-200 dark:border-[#3d5245] hover:bg-slate-50 dark:hover:bg-[#2A3830] transition-colors">
+                    <img alt="Google Logo" class="w-6 h-6" data-alt="Google Sign In Icon"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0iDAv8bJ0WNVTWsrber6810-bhEtqW69-s7IMpp3z3u_MXnTAcsRv7dfTskoyEWRZXO_F5BlDgPEuhmrOI0jqLJKe-m33AMM0KP8GoKm2ce9iMWS6iW-m_QfRZbnIzKRNrXSWE5BihwdmjbOIFQv0q9kj7lP5Ww5-MipdaW2nB7UMnrV78guYSGEUX0ldcqKXKFlg3_U0R2lZM8VnkKoWek8XXivOLzhH1Ybe4Gsr-mhb-5OELWdGSGeZhRxtTwlLJipxR77UcNA" />
+                </button>
+                <button
+                    class="flex items-center justify-center w-14 h-14 rounded-full bg-white dark:bg-surface-dark border border-slate-200 dark:border-[#3d5245] hover:bg-slate-50 dark:hover:bg-[#2A3830] transition-colors">
+                    <span class="material-symbols-outlined text-[28px] text-slate-900 dark:text-white">ios</span>
+                </button>
+            </div>
+            <p class="text-slate-500 dark:text-text-secondary text-sm">
+                Hesabınız yok mu?
+                <a class="text-primary font-semibold hover:underline" href="#">Hemen Kaydolun</a>
+            </p>
+        </div>
+    </div>
+    <!-- Background Decoration Image -->
+    <div class="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 opacity-30 dark:opacity-20 overflow-hidden">
+        <div class="absolute -top-[20%] -right-[20%] w-[70%] aspect-square rounded-full bg-primary/20 blur-[120px]">
+        </div>
+        <div class="absolute bottom-0 left-0 w-[50%] aspect-square rounded-full bg-primary/10 blur-[100px]"></div>
+    </div>
+    <script>
+        function handleLogin() {
+            // Get selected user type
+            const userTypeInputs = document.getElementsByName('userType');
+            let selectedUserType = 'patient';
+            for (const input of userTypeInputs) {
+                if (input.checked) {
+                    selectedUserType = input.value;
+                    break;
+                }
+            }
+
+            // Get username and password
+            const usernameInput = document.querySelector('input[type="text"]');
+            const passwordInput = document.querySelector('input[type="password"]');
+
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            console.log("Login attempt: " + username + " " + password + " " + selectedUserType);
+
+            // Mock Validation Logic
+            if (username === 'patient' && password === 'patient') {
+                if (typeof Android !== 'undefined') {
+                    Android.login('patient');
+                } else {
+                    console.log("Android interface not found");
+                }
+            } else if (username === 'caregiver' && password === 'caregiver') {
+                // If user selected caregiver or just typed caregiver/caregiver, we treat as caregiver
+                if (typeof Android !== 'undefined') {
+                    Android.login('caregiver');
+                } else {
+                    console.log("Android interface not found");
+                }
+            } else {
+                alert("Hatalı kullanıcı adı veya şifre! (Test için: patient/patient veya caregiver/caregiver)");
+            }
+        }
+    </script>
+</body>
+
+</html>
