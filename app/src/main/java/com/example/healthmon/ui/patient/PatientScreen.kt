@@ -1,5 +1,7 @@
 package com.example.healthmon.ui.patient
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,7 +23,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,10 +31,31 @@ import com.example.healthmon.ui.components.HealthMonBottomNavBar
 import com.example.healthmon.ui.components.HealthMonNavItems
 import com.example.healthmon.ui.components.HeartRateChart
 import com.example.healthmon.ui.theme.*
+import kotlinx.coroutines.delay
+import kotlin.random.Random
 
 @Composable
 fun PatientScreen() {
+    val context = LocalContext.current
     var selectedNavItem by remember { mutableStateOf("home") }
+    
+    // Simulated heart rate (changes every 2 seconds)
+    var heartRate by remember { mutableIntStateOf(78) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(2000L)
+            heartRate = Random.nextInt(70, 95)  // Realistic resting range
+        }
+    }
+    
+    // Simulated inactivity timer (increments every minute for demo: every 5 sec)
+    var inactivityMinutes by remember { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(5000L)  // 5 sec for demo (use 60000L for real minutes)
+            inactivityMinutes++
+        }
+    }
     
     // Emergency button pulse animation
     val infiniteTransition = rememberInfiniteTransition(label = "emergency_pulse")
@@ -93,22 +116,37 @@ fun PatientScreen() {
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Caregiver Card
-                CaregiverCard()
+                CaregiverCard(
+                    onCallClick = {
+                        val intent = Intent(Intent.ACTION_DIAL).apply {
+                            data = Uri.parse("tel:+905551234567")  // Bakıcı numarası
+                        }
+                        context.startActivity(intent)
+                    }
+                )
                 
-                // Heart Rate Chart
+                // Heart Rate Chart - now dynamic!
                 HeartRateChart(
-                    heartRate = 86,
-                    isNormal = true
+                    heartRate = heartRate,
+                    isNormal = heartRate in 60..100
                 )
                 
                 // Inactivity Status Card
-                InactivityCard()
+                InactivityCard(
+                    durationMinutes = inactivityMinutes,
+                    targetMinutes = 60
+                )
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                // Emergency Button
+                // Emergency Button - opens dialer for 112
                 EmergencyButton(
-                    onClick = { /* TODO */ },
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_DIAL).apply {
+                            data = Uri.parse("tel:112")
+                        }
+                        context.startActivity(intent)
+                    },
                     modifier = Modifier.scale(emergencyScale)
                 )
                 
@@ -121,7 +159,12 @@ fun PatientScreen() {
             items = HealthMonNavItems.patientItems,
             selectedRoute = selectedNavItem,
             onItemSelected = { selectedNavItem = it },
-            onEmergencyClick = { /* TODO: Handle emergency */ },
+            onEmergencyClick = {
+                val intent = Intent(Intent.ACTION_DIAL).apply {
+                    data = Uri.parse("tel:112")
+                }
+                context.startActivity(intent)
+            },
             modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
@@ -169,7 +212,9 @@ private fun PatientHeader() {
 }
 
 @Composable
-private fun CaregiverCard() {
+private fun CaregiverCard(
+    onCallClick: () -> Unit = {}
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -218,7 +263,7 @@ private fun CaregiverCard() {
                 )
             }
             
-            // Call button
+            // Call button - now functional!
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -230,7 +275,7 @@ private fun CaregiverCard() {
                     )
                     .clip(CircleShape)
                     .background(Primary)
-                    .clickable { /* TODO: Call */ },
+                    .clickable(onClick = onCallClick),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -245,7 +290,14 @@ private fun CaregiverCard() {
 }
 
 @Composable
-private fun InactivityCard() {
+private fun InactivityCard(
+    durationMinutes: Int = 0,
+    targetMinutes: Int = 60
+) {
+    val progress = (durationMinutes.toFloat() / targetMinutes).coerceIn(0f, 1f)
+    val progressPercent = (progress * 100).toInt()
+    val isAlert = durationMinutes >= targetMinutes
+    
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -267,13 +319,13 @@ private fun InactivityCard() {
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(AlertOrange.copy(alpha = 0.15f)),
+                        .background(if (isAlert) AlertRed.copy(alpha = 0.15f) else AlertOrange.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Person,
                         contentDescription = null,
-                        tint = AlertOrange,
+                        tint = if (isAlert) AlertRed else AlertOrange,
                         modifier = Modifier.size(22.dp)
                     )
                 }
@@ -284,9 +336,9 @@ private fun InactivityCard() {
                         color = TextSecondaryDark
                     )
                     Text(
-                        text = "45 dk",
+                        text = "$durationMinutes dk",
                         style = MaterialTheme.typography.titleLarge,
-                        color = Color.White,
+                        color = if (isAlert) AlertRed else Color.White,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -297,13 +349,13 @@ private fun InactivityCard() {
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Primary.copy(alpha = 0.1f)),
+                    .background(if (isAlert) AlertRed.copy(alpha = 0.1f) else Primary.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "70%",
+                    text = "$progressPercent%",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Primary,
+                    color = if (isAlert) AlertRed else Primary,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -319,12 +371,15 @@ private fun InactivityCard() {
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.45f)
+                    .fillMaxWidth(progress)
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(4.dp))
                     .background(
                         Brush.horizontalGradient(
-                            colors = listOf(AlertOrange.copy(alpha = 0.7f), AlertOrange)
+                            colors = if (isAlert) 
+                                listOf(AlertRed.copy(alpha = 0.7f), AlertRed)
+                            else 
+                                listOf(AlertOrange.copy(alpha = 0.7f), AlertOrange)
                         )
                     )
             )
@@ -338,7 +393,7 @@ private fun InactivityCard() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Hedef: 60 dk",
+                text = "Hedef: $targetMinutes dk",
                 style = MaterialTheme.typography.bodySmall,
                 color = TextSecondaryDark
             )

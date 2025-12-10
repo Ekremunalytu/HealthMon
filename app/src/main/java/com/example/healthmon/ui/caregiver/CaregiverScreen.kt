@@ -1,5 +1,7 @@
 package com.example.healthmon.ui.caregiver
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,6 +24,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,6 +32,8 @@ import com.example.healthmon.ui.components.HealthMonBottomNavBar
 import com.example.healthmon.ui.components.HealthMonNavItems
 import com.example.healthmon.ui.components.HeartRateChart
 import com.example.healthmon.ui.theme.*
+import kotlinx.coroutines.delay
+import kotlin.random.Random
 
 data class Patient(
     val name: String,
@@ -47,8 +52,18 @@ data class MedicalHistoryItem(
 
 @Composable
 fun CaregiverScreen() {
+    val context = LocalContext.current
     var selectedNavItem by remember { mutableStateOf("home") }
     var selectedPatient by remember { mutableStateOf(0) }
+    
+    // Simulated heart rate for selected patient
+    var heartRate by remember { mutableIntStateOf(78) }
+    LaunchedEffect(selectedPatient) {
+        while (true) {
+            delay(2000L)
+            heartRate = Random.nextInt(65, 95)
+        }
+    }
     
     val patients = remember {
         listOf(
@@ -127,10 +142,10 @@ fun CaregiverScreen() {
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Heart Rate Chart
+                // Heart Rate Chart - now dynamic!
                 HeartRateChart(
-                    heartRate = 86,
-                    isNormal = true
+                    heartRate = heartRate,
+                    isNormal = heartRate in 60..100
                 )
                 
                 // Stats Grid
@@ -148,7 +163,12 @@ fun CaregiverScreen() {
             items = HealthMonNavItems.caregiverItems,
             selectedRoute = selectedNavItem,
             onItemSelected = { selectedNavItem = it },
-            onEmergencyClick = { /* TODO: Handle emergency */ },
+            onEmergencyClick = {
+                val intent = Intent(Intent.ACTION_DIAL).apply {
+                    data = Uri.parse("tel:112")
+                }
+                context.startActivity(intent)
+            },
             modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
