@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -59,10 +60,14 @@ data class MedicalHistoryItem(
 fun CaregiverScreen(
     viewModel: CaregiverViewModel = hiltViewModel(),
     token: String = "",
-    caregiverId: String = ""
+    caregiverId: String = "",
+    onLogout: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var selectedNavItem by remember { mutableStateOf("home") }
+    
+    // Logout Dialog State
+    var showLogoutDialog by remember { mutableStateOf(false) }
     
     // Load patients when screen opens
     LaunchedEffect(Unit) {
@@ -116,6 +121,43 @@ fun CaregiverScreen(
         )
     }
 
+    // Logout Confirmation Dialog
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            containerColor = SurfaceCardDark,
+            title = {
+                Text(
+                    text = "Çıkış Yap",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "Uygulamadan çıkış yapmak istediğinize emin misiniz?",
+                    color = TextSecondaryDark,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutDialog = false
+                        viewModel.logout(onLogout)
+                    }
+                ) {
+                    Text("Çıkış Yap", color = AlertRed, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("İptal", color = TextSecondaryDark)
+                }
+            }
+        )
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -139,8 +181,10 @@ fun CaregiverScreen(
                 .fillMaxSize()
                 .padding(bottom = 100.dp)
         ) {
-            // Header
-            CaregiverHeader()
+            // Header with logout button
+            CaregiverHeader(
+                onSettingsClick = { showLogoutDialog = true }
+            )
             
             // Patient Selector
             PatientSelector(
@@ -206,7 +250,9 @@ fun CaregiverScreen(
 }
 
 @Composable
-private fun CaregiverHeader() {
+private fun CaregiverHeader(
+    onSettingsClick: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -261,30 +307,52 @@ private fun CaregiverHeader() {
             }
         }
         
-        // Notification button
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(SurfaceDark)
-                .clickable { /* TODO */ },
-            contentAlignment = Alignment.Center
+        // Action buttons
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Notifications,
-                contentDescription = "Bildirimler",
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-            // Notification badge
+            // Notification button
             Box(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .offset(x = (-8).dp, y = 8.dp)
-                    .size(8.dp)
+                    .size(44.dp)
                     .clip(CircleShape)
-                    .background(Primary)
-            )
+                    .background(SurfaceDark)
+                    .clickable { /* TODO */ },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Notifications,
+                    contentDescription = "Bildirimler",
+                    tint = Color.White,
+                    modifier = Modifier.size(22.dp)
+                )
+                // Notification badge
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = (-6).dp, y = 6.dp)
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(Primary)
+                )
+            }
+            
+            // Settings/Logout button
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(SurfaceDark)
+                    .clickable { onSettingsClick() },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Settings,
+                    contentDescription = "Ayarlar / Çıkış",
+                    tint = Color.White,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
         }
     }
 }

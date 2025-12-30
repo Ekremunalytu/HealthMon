@@ -171,7 +171,8 @@ class PatientRepository @Inject constructor(
     }
 
     /**
-     * Trigger emergency alert
+     * Trigger emergency alert via SOS endpoint
+     * Endpoint: POST /api/sos
      */
     suspend fun triggerEmergency(
         patientId: String,
@@ -180,10 +181,19 @@ class PatientRepository @Inject constructor(
     ): Result<EmergencyLog> {
         return try {
             val request = EmergencyRequest(patientId = patientId, message = message)
-            val response = apiService.triggerEmergency(request, "Bearer $token")
+            // Try SOS endpoint first, fallback to emergency endpoint
+            val response = try {
+                apiService.triggerSos(request, "Bearer $token")
+            } catch (e: Exception) {
+                Log.w(TAG, "SOS endpoint failed, trying emergency endpoint", e)
+                apiService.triggerEmergency(request, "Bearer $token")
+            }
+            
             if (response.isSuccessful && response.body() != null) {
+                Log.d(TAG, "Emergency/SOS triggered successfully")
                 Result.success(response.body()!!)
             } else {
+                Log.e(TAG, "Failed to trigger emergency: ${response.code()} - ${response.errorBody()?.string()}")
                 Result.failure(Exception("Failed to trigger emergency: ${response.code()}"))
             }
         } catch (e: Exception) {

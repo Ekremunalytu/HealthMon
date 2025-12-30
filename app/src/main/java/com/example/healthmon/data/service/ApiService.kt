@@ -87,6 +87,16 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Response<EmergencyLog>
 
+    /**
+     * Trigger SOS alert (alias for emergency)
+     * Endpoint: POST /api/sos
+     */
+    @POST("api/sos")
+    suspend fun triggerSos(
+        @Body emergency: EmergencyRequest,
+        @Header("Authorization") token: String
+    ): Response<EmergencyLog>
+
     // ===============================================
     // Caregiver APIs (Receiving Data)
     // ===============================================

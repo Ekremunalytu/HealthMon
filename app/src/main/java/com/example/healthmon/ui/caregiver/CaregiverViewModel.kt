@@ -2,6 +2,7 @@ package com.example.healthmon.ui.caregiver
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.healthmon.data.local.TokenManager
 import com.example.healthmon.data.model.HeartRateData
 import com.example.healthmon.data.model.InactivityData
 import com.example.healthmon.data.model.PatientInfo
@@ -20,7 +21,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class CaregiverViewModel @Inject constructor(
-    private val repository: CaregiverRepository
+    private val repository: CaregiverRepository,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
     
     // List of patients assigned to this caregiver
@@ -81,9 +83,22 @@ class CaregiverViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * Logout user - clears auth data and disconnects
+     */
+    fun logout(onLogout: () -> Unit) {
+        viewModelScope.launch {
+            vitalsJob?.cancel()
+            repository.disconnectWebSocket()
+            tokenManager.clearAuthData()
+            onLogout()
+        }
+    }
     
     override fun onCleared() {
         super.onCleared()
         repository.disconnectWebSocket()
     }
 }
+

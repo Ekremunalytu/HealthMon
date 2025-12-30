@@ -43,10 +43,10 @@ fun PatientScreen(
     val context = LocalContext.current
     var selectedNavItem by remember { mutableStateOf("home") }
     
-    // Start sending data when screen opens
-    LaunchedEffect(Unit) {
+    // Start data streaming when screen opens
+    LaunchedEffect(patientId, token) {
         if (patientId.isNotEmpty() && token.isNotEmpty()) {
-            viewModel.startSendingData(patientId, token)
+            viewModel.startDataStreaming(patientId, token)
         }
     }
     
@@ -54,6 +54,13 @@ fun PatientScreen(
     val vitalDataState by viewModel.vitalDataState.collectAsState()
     val heartRate = vitalDataState.heartRate.bpm
     val inactivityMinutes = vitalDataState.inactivity.durationMinutes
+    
+    // Get data transmission state
+    val transmissionState by viewModel.dataTransmissionState.collectAsState()
+    
+    // Emergency dialog state
+    var showEmergencyDialog by remember { mutableStateOf(false) }
+    var emergencySending by remember { mutableStateOf(false) }
     
     // Emergency button pulse animation
     val infiniteTransition = rememberInfiniteTransition(label = "emergency_pulse")
@@ -100,6 +107,87 @@ fun PatientScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("İptal", color = TextSecondaryDark)
+                }
+            }
+        )
+    }
+
+    // Emergency Confirmation Dialog
+    if (showEmergencyDialog) {
+        AlertDialog(
+            onDismissRequest = { if (!emergencySending) showEmergencyDialog = false },
+            containerColor = SurfaceCardDark,
+            title = {
+                Text(
+                    text = "⚠️ ACİL DURUM",
+                    color = AlertRed,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "Acil yardım çağrısı göndermek istediğinize emin misiniz?",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Bu işlem bakıcınıza bildirim gönderecek ve 112'yi arayacaktır.",
+                        color = TextSecondaryDark,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    if (emergencySending) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                color = Primary,
+                                strokeWidth = 2.dp
+                            )
+                            Text(
+                                text = "Acil yardım gönderiliyor...",
+                                color = Primary,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (patientId.isNotEmpty() && token.isNotEmpty()) {
+                            emergencySending = true
+                            viewModel.sendEmergency(
+                                patientId = patientId,
+                                message = "ACİL YARDIM! Hasta yardım istiyor.",
+                                token = token
+                            ) { success ->
+                                emergencySending = false
+                                showEmergencyDialog = false
+                                // Call 112 after sending to backend
+                                val intent = Intent(Intent.ACTION_DIAL).apply {
+                                    data = Uri.parse("tel:112")
+                                }
+                                context.startActivity(intent)
+                            }
+                        }
+                    },
+                    enabled = !emergencySending
+                ) {
+                    Text("EVET, YARDIM ÇAĞIR", color = AlertRed, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showEmergencyDialog = false },
+                    enabled = !emergencySending
+                ) {
                     Text("İptal", color = TextSecondaryDark)
                 }
             }
@@ -197,14 +285,9 @@ fun PatientScreen(
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                // Emergency Button - opens dialer for 112
+                // Emergency Button - sends SOS to backend then opens dialer for 112
                 EmergencyButton(
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_DIAL).apply {
-                            data = Uri.parse("tel:112")
-                        }
-                        context.startActivity(intent)
-                    },
+                    onClick = { showEmergencyDialog = true },
                     modifier = Modifier.scale(emergencyScale)
                 )
                 
@@ -217,12 +300,7 @@ fun PatientScreen(
             items = HealthMonNavItems.patientItems,
             selectedRoute = selectedNavItem,
             onItemSelected = { selectedNavItem = it },
-            onEmergencyClick = {
-                val intent = Intent(Intent.ACTION_DIAL).apply {
-                    data = Uri.parse("tel:112")
-                }
-                context.startActivity(intent)
-            },
+            onEmergencyClick = { showEmergencyDialog = true },
             modifier = Modifier.align(Alignment.BottomCenter)
         )
     }

@@ -103,7 +103,15 @@ fun MainNavigation() {
         ) { backStackEntry ->
             val token = backStackEntry.arguments?.getString("token") ?: ""
             val caregiverId = backStackEntry.arguments?.getString("caregiverId") ?: ""
-            CaregiverScreen(token = token, caregiverId = caregiverId)
+            CaregiverScreen(
+                token = token,
+                caregiverId = caregiverId,
+                onLogout = {
+                    navController.navigate("login") {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }
