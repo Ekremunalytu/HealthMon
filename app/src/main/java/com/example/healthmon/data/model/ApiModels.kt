@@ -19,12 +19,17 @@ data class LoginRequest(
 data class LoginResponse(
     val success: Boolean,
     val message: String,
-    @Json(name = "access_token") val token: String? = null,
+    // Backend returns both "token" and "access_token", we read both
+    val token: String? = null,
+    @Json(name = "access_token") val accessToken: String? = null,
     @Json(name = "user_type") val userType: String? = null,
     @Json(name = "user_id") val userId: String? = null,
     @Json(name = "patient_id") val patientId: String? = null,
     @Json(name = "caregiver_id") val caregiverId: String? = null
-)
+) {
+    // Helper to get whichever token is available
+    fun getAuthToken(): String? = accessToken ?: token
+}
 
 // ===============================================
 // Patient Models

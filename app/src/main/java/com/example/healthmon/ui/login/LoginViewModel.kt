@@ -31,7 +31,7 @@ class LoginViewModel @Inject constructor(
                     val rawUserType = response.userType
                     val patientId = response.patientId
                     val caregiverId = response.caregiverId
-                    val token = response.token
+                    val token = response.getAuthToken()
 
                     if (token.isNullOrEmpty()) {
                         _uiState.value = LoginUiState.Error("Giriş başarılı fakat token alınamadı (Backend Hatası).")
