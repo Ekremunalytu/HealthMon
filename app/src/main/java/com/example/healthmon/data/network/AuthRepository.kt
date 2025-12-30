@@ -10,7 +10,7 @@ class AuthRepository @Inject constructor(
     private val apiService: ApiService
 ) {
     // Set to true to use mock authentication (no backend required)
-    private val useMockAuth = true
+    private val useMockAuth = false
     
     suspend fun login(request: LoginRequest): Result<LoginResponse> {
         // Use mock authentication for development/testing
@@ -28,7 +28,8 @@ class AuthRepository @Inject constructor(
                     Result.failure(Exception("Response body is null"))
                 }
             } else {
-                Result.failure(Exception("Login failed with code: ${response.code()}"))
+                val errorBody = response.errorBody()?.string()
+                Result.failure(Exception("Login failed: ${response.code()} - $errorBody"))
             }
         } catch (e: Exception) {
             Result.failure(e)

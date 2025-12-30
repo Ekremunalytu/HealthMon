@@ -15,7 +15,9 @@ interface ApiService {
     // ===============================================
     
     @POST("api/auth/login")
-    suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
+    suspend fun login(
+        @Body request: LoginRequest
+    ): Response<LoginResponse>
 
     // ===============================================
     // Patient APIs (Sending Data)

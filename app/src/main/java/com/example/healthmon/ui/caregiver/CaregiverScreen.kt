@@ -12,7 +12,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -51,24 +57,36 @@ data class MedicalHistoryItem(
 
 @Composable
 fun CaregiverScreen(
-    viewModel: CaregiverViewModel = hiltViewModel()
+    viewModel: CaregiverViewModel = hiltViewModel(),
+    token: String = "",
+    caregiverId: String = ""
 ) {
     val context = LocalContext.current
     var selectedNavItem by remember { mutableStateOf("home") }
     
-    // Get data from ViewModel
-    val vitalDataState by viewModel.vitalDataState.collectAsState()
-    val selectedPatient by viewModel.selectedPatientIndex.collectAsState()
-    val heartRate = vitalDataState.heartRate.bpm
-    
-    val patients = remember {
-        listOf(
-            Patient("Ayşe Demir", true, "👵"),
-            Patient("Mehmet Yılmaz", false),
-            Patient("Ali Kaya", false)
-        )
+    // Load patients when screen opens
+    LaunchedEffect(Unit) {
+        if (caregiverId.isNotEmpty() && token.isNotEmpty()) {
+            viewModel.loadPatients(caregiverId, token)
+        }
     }
     
+    // Get data from ViewModel
+    val vitalDataState by viewModel.vitalDataState.collectAsState()
+    val patients by viewModel.patients.collectAsState()
+    val selectedPatientId by viewModel.selectedPatientId.collectAsState()
+    
+    val heartRate = vitalDataState.heartRate.bpm
+    
+    // Map API PatientInfo to UI Patient model (keeping existing UI structure for now)
+    val uiPatients = patients.map { info ->
+        Patient(
+            name = info.name,
+            isActive = info.id == selectedPatientId, // Active if selected
+            emoji = "👤" // Default emoji
+        )
+    }
+
     val medicalHistory = remember {
         listOf(
             MedicalHistoryItem(
@@ -126,9 +144,13 @@ fun CaregiverScreen(
             
             // Patient Selector
             PatientSelector(
-                patients = patients,
-                selectedIndex = selectedPatient,
-                onPatientSelected = { viewModel.selectPatient(it) }
+                patients = uiPatients,
+                selectedIndex = patients.indexOfFirst { it.id == selectedPatientId }.takeIf { it >= 0 } ?: 0,
+                onPatientSelected = { index -> 
+                    if (index in patients.indices) {
+                        viewModel.selectPatient(patients[index].id, token)
+                    }
+                }
             )
             
             Column(

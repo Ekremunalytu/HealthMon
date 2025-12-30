@@ -33,7 +33,7 @@ import com.example.healthmon.ui.theme.*
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
-    onLoginSuccess: (String) -> Unit
+    onLoginSuccess: (String, String, String) -> Unit
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -55,8 +55,15 @@ fun LoginScreen(
 
     LaunchedEffect(uiState) {
         if (uiState is LoginUiState.Success) {
-            val type = (uiState as LoginUiState.Success).userType
-            onLoginSuccess(if (type == "Hasta") "patient" else "caregiver")
+            val successState = uiState as LoginUiState.Success
+            val type = successState.userType
+            val token = successState.token ?: ""
+            
+            if (type == "Hasta") {
+                onLoginSuccess("patient", token, successState.patientId ?: "")
+            } else {
+                onLoginSuccess("caregiver", token, successState.caregiverId ?: "")
+            }
         }
     }
 
@@ -203,7 +210,7 @@ fun LoginScreen(
             HealthMonButton(
                 text = "Giriş Yap →",
                 onClick = {
-                    viewModel.login(username, password)
+                    viewModel.login(username, password, selectedUserType)
                 },
                 isLoading = uiState is LoginUiState.Loading
             )

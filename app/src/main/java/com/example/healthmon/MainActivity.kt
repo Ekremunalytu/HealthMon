@@ -38,27 +38,72 @@ class MainActivity : ComponentActivity() {
 fun MainNavigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(navController = navController, startDestination = "splash") {
+        composable("splash") {
+            com.example.healthmon.ui.splash.SplashScreen(
+                onNavigateToLogin = {
+                    navController.navigate("login") {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                },
+                onNavigateToPatient = { token, patientId ->
+                    navController.navigate("patient/$token/$patientId") {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                },
+                onNavigateToCaregiver = { token, caregiverId ->
+                    navController.navigate("caregiver/$token/$caregiverId") {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                }
+            )
+        }
         composable("login") {
             LoginScreen(
-                onLoginSuccess = { userType ->
+                onLoginSuccess = { userType, token, userId ->
+                    // userType decides destination (already mapped in LoginScreen logic)
+                    // The IDs passed here: userId is either patientId or caregiverId in current implementation
                     if (userType == "patient") {
-                        navController.navigate("patient") {
+                        navController.navigate("patient/$token/$userId") {
                             popUpTo("login") { inclusive = true }
                         }
                     } else if (userType == "caregiver") {
-                        navController.navigate("caregiver") {
+                        navController.navigate("caregiver/$token/$userId") {
                             popUpTo("login") { inclusive = true }
                         }
                     }
                 }
             )
         }
-        composable("patient") {
-            PatientScreen()
+        composable(
+            route = "patient/{token}/{patientId}",
+            arguments = listOf(
+                androidx.navigation.navArgument("token") { type = androidx.navigation.NavType.StringType },
+                androidx.navigation.navArgument("patientId") { type = androidx.navigation.NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val token = backStackEntry.arguments?.getString("token") ?: ""
+            val patientId = backStackEntry.arguments?.getString("patientId") ?: ""
+            PatientScreen(
+                token = token,
+                patientId = patientId,
+                onLogout = {
+                    navController.navigate("login") {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                }
+            )
         }
-        composable("caregiver") {
-            CaregiverScreen()
+        composable(
+            route = "caregiver/{token}/{caregiverId}",
+            arguments = listOf(
+                androidx.navigation.navArgument("token") { type = androidx.navigation.NavType.StringType },
+                androidx.navigation.navArgument("caregiverId") { type = androidx.navigation.NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val token = backStackEntry.arguments?.getString("token") ?: ""
+            val caregiverId = backStackEntry.arguments?.getString("caregiverId") ?: ""
+            CaregiverScreen(token = token, caregiverId = caregiverId)
         }
     }
 }

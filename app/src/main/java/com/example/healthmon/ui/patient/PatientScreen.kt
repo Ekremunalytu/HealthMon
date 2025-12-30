@@ -35,10 +35,20 @@ import com.example.healthmon.ui.theme.*
 
 @Composable
 fun PatientScreen(
-    viewModel: PatientViewModel = hiltViewModel()
+    viewModel: PatientViewModel = hiltViewModel(),
+    token: String = "",
+    patientId: String = "",
+    onLogout: () -> Unit
 ) {
     val context = LocalContext.current
     var selectedNavItem by remember { mutableStateOf("home") }
+    
+    // Start sending data when screen opens
+    LaunchedEffect(Unit) {
+        if (patientId.isNotEmpty() && token.isNotEmpty()) {
+            viewModel.startSendingData(patientId, token)
+        }
+    }
     
     // Get vital data from ViewModel
     val vitalDataState by viewModel.vitalDataState.collectAsState()
@@ -57,12 +67,51 @@ fun PatientScreen(
         label = "pulse"
     )
 
-    
+    // Logout Dialog State
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            containerColor = SurfaceCardDark,
+            title = {
+                Text(
+                    text = "Çıkış Yap",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "Uygulamadan çıkış yapmak istediğinize emin misiniz?",
+                    color = TextSecondaryDark,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutDialog = false
+                        viewModel.logout(onLogout)
+                    }
+                ) {
+                    Text("Çıkış Yap", color = AlertRed, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("İptal", color = TextSecondaryDark)
+                }
+            }
+        )
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundDark)
     ) {
+        // ... Background boxes unchanged ...
         // Background glow effects
         Box(
             modifier = Modifier
@@ -95,7 +144,9 @@ fun PatientScreen(
                 .padding(bottom = 100.dp)
         ) {
             // Header
-            PatientHeader()
+            PatientHeader(
+                onSettingsClick = { showLogoutDialog = true }
+            )
             
             Column(
                 modifier = Modifier
@@ -104,6 +155,7 @@ fun PatientScreen(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // ... content ...
                 // Caregiver Card
                 CaregiverCard(
                     onCallClick = {
@@ -177,7 +229,9 @@ fun PatientScreen(
 }
 
 @Composable
-private fun PatientHeader() {
+private fun PatientHeader(
+    onSettingsClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -204,7 +258,7 @@ private fun PatientHeader() {
                 .size(44.dp)
                 .clip(CircleShape)
                 .background(SurfaceDark)
-                .clickable { /* TODO: Settings */ },
+                .clickable { onSettingsClick() },
             contentAlignment = Alignment.Center
         ) {
             Icon(

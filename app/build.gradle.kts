@@ -82,6 +82,9 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    // DataStore for saving token
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 }
 kapt {
     correctErrorTypes = true

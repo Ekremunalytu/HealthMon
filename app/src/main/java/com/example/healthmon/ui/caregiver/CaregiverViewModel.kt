@@ -2,14 +2,17 @@ package com.example.healthmon.ui.caregiver
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.healthmon.data.model.HeartRateData
+import com.example.healthmon.data.model.InactivityData
+import com.example.healthmon.data.model.PatientInfo
 import com.example.healthmon.data.model.VitalDataState
-import com.example.healthmon.data.repository.VitalDataRepository
+import com.example.healthmon.data.repository.CaregiverRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
@@ -17,30 +20,70 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class CaregiverViewModel @Inject constructor(
-    private val vitalDataRepository: VitalDataRepository
+    private val repository: CaregiverRepository
 ) : ViewModel() {
     
-    /**
-     * Currently selected patient index
-     */
-    private val _selectedPatientIndex = MutableStateFlow(0)
-    val selectedPatientIndex: StateFlow<Int> = _selectedPatientIndex.asStateFlow()
+    // List of patients assigned to this caregiver
+    private val _patients = MutableStateFlow<List<PatientInfo>>(emptyList())
+    val patients: StateFlow<List<PatientInfo>> = _patients.asStateFlow()
+
+    // Currently selected patient ID
+    private val _selectedPatientId = MutableStateFlow<String?>(null)
+    val selectedPatientId: StateFlow<String?> = _selectedPatientId.asStateFlow()
+    
+    // Real-time vital data
+    private val _vitalDataState = MutableStateFlow(VitalDataState(isConnected = false))
+    val vitalDataState: StateFlow<VitalDataState> = _vitalDataState.asStateFlow()
+    
+    private var vitalsJob: Job? = null
     
     /**
-     * Vital data state flow for UI observation
+     * Load assigned patients from backend
      */
-    val vitalDataState: StateFlow<VitalDataState> = vitalDataRepository
-        .getVitalDataStateFlow()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = VitalDataState()
-        )
+    fun loadPatients(caregiverId: String, token: String) {
+        viewModelScope.launch {
+            repository.getAssignedPatients(caregiverId, token)
+                .onSuccess { patientList ->
+                    _patients.value = patientList
+                    // Auto-select first patient if none selected
+                    if (_selectedPatientId.value == null && patientList.isNotEmpty()) {
+                        selectPatient(patientList.first().id, token)
+                    }
+                }
+                .onFailure {
+                    // Handle error (expose to UI if needed)
+                }
+        }
+    }
     
     /**
-     * Select a patient by index
+     * Select a patient and subscribe to their vitals
      */
-    fun selectPatient(index: Int) {
-        _selectedPatientIndex.value = index
+    fun selectPatient(patientId: String, token: String) {
+        if (_selectedPatientId.value == patientId) return
+        
+        _selectedPatientId.value = patientId
+        
+        // Cancel previous subscription
+        vitalsJob?.cancel()
+        
+        // Start new subscription
+        vitalsJob = viewModelScope.launch {
+            // Reset state while connecting
+            _vitalDataState.value = VitalDataState(isConnected = false)
+            
+            repository.connectToPatientVitals(patientId, token).collect { wsData ->
+                _vitalDataState.value = VitalDataState(
+                    heartRate = HeartRateData(bpm = wsData.heartRate),
+                    inactivity = InactivityData(durationMinutes = wsData.inactivitySeconds / 60),
+                    isConnected = true
+                )
+            }
+        }
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        repository.disconnectWebSocket()
     }
 }
