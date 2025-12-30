@@ -28,12 +28,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.healthmon.ui.components.HealthMonBottomNavBar
 import com.example.healthmon.ui.components.HealthMonNavItems
 import com.example.healthmon.ui.components.HeartRateChart
 import com.example.healthmon.ui.theme.*
-import kotlinx.coroutines.delay
-import kotlin.random.Random
 
 data class Patient(
     val name: String,
@@ -51,20 +50,16 @@ data class MedicalHistoryItem(
 )
 
 @Composable
-fun CaregiverScreen() {
+fun CaregiverScreen(
+    viewModel: CaregiverViewModel = hiltViewModel()
+) {
     val context = LocalContext.current
     var selectedNavItem by remember { mutableStateOf("home") }
-    var selectedPatient by remember { mutableStateOf(0) }
     
-    // Simulated heart rate for selected patient (updates every second)
-    var heartRate by remember { mutableIntStateOf(78) }
-    LaunchedEffect(selectedPatient) {
-        while (true) {
-            delay(1000L)  // Every second
-            val change = Random.nextInt(-3, 4)
-            heartRate = (heartRate + change).coerceIn(60, 100)
-        }
-    }
+    // Get data from ViewModel
+    val vitalDataState by viewModel.vitalDataState.collectAsState()
+    val selectedPatient by viewModel.selectedPatientIndex.collectAsState()
+    val heartRate = vitalDataState.heartRate.bpm
     
     val patients = remember {
         listOf(
@@ -133,7 +128,7 @@ fun CaregiverScreen() {
             PatientSelector(
                 patients = patients,
                 selectedIndex = selectedPatient,
-                onPatientSelected = { selectedPatient = it }
+                onPatientSelected = { viewModel.selectPatient(it) }
             )
             
             Column(
@@ -152,8 +147,21 @@ fun CaregiverScreen() {
                 // Stats Grid
                 StatsGrid()
                 
+                // Medical History Dialog State
+                var showHistoryDialog by remember { mutableStateOf(false) }
+                
+                if (showHistoryDialog) {
+                    MedicalHistoryDialog(
+                        items = medicalHistory,
+                        onDismiss = { showHistoryDialog = false }
+                    )
+                }
+                
                 // Medical History
-                MedicalHistorySection(items = medicalHistory)
+                MedicalHistorySection(
+                    items = medicalHistory,
+                    onViewAllClick = { showHistoryDialog = true }
+                )
                 
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -496,7 +504,10 @@ private fun StatCard(
 }
 
 @Composable
-private fun MedicalHistorySection(items: List<MedicalHistoryItem>) {
+private fun MedicalHistorySection(
+    items: List<MedicalHistoryItem>,
+    onViewAllClick: () -> Unit = {}
+) {
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -515,7 +526,8 @@ private fun MedicalHistorySection(items: List<MedicalHistoryItem>) {
                 text = "Tümü",
                 style = MaterialTheme.typography.labelMedium,
                 color = Primary,
-                modifier = Modifier.clickable { /* TODO */ }
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable { onViewAllClick() }
             )
         }
         
@@ -523,6 +535,118 @@ private fun MedicalHistorySection(items: List<MedicalHistoryItem>) {
             MedicalHistoryCard(item = item)
         }
     }
+}
+
+/**
+ * Dialog showing all medical history items
+ */
+@Composable
+private fun MedicalHistoryDialog(
+    items: List<MedicalHistoryItem>,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = SurfaceCardDark,
+        title = {
+            Text(
+                text = "Tüm Tıbbi Geçmiş",
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Extended mock data for demo
+                val allItems = items + listOf(
+                    MedicalHistoryItem(
+                        "Kan Şekeri Kontrolü",
+                        "Rutin ölçüm",
+                        "07:30",
+                        "95 mg/dL",
+                        Icons.Filled.Favorite,
+                        Color(0xFFEC4899)
+                    ),
+                    MedicalHistoryItem(
+                        "Egzersiz",
+                        "Hafif yürüyüş",
+                        "Dün 16:00",
+                        "30 dk",
+                        Icons.Filled.Person,
+                        Color(0xFF22C55E)
+                    ),
+                    MedicalHistoryItem(
+                        "İlaç Takviyesi",
+                        "Aspirin 100mg",
+                        "Dün 21:00",
+                        "Alındı",
+                        Icons.Filled.Add,
+                        Color(0xFFA855F7)
+                    )
+                )
+                
+                allItems.forEach { item ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(SurfaceDark)
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(item.iconColor.copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = item.icon,
+                                contentDescription = null,
+                                tint = item.iconColor,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = item.title,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = item.subtitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextSecondaryDark
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = item.time,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White
+                            )
+                            Text(
+                                text = item.status,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Primary
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Kapat", color = Primary, fontWeight = FontWeight.Bold)
+            }
+        }
+    )
 }
 
 @Composable

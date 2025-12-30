@@ -203,8 +203,7 @@ fun LoginScreen(
             HealthMonButton(
                 text = "Giriş Yap →",
                 onClick = {
-                    val userType = if (selectedUserType == "patient") "Hasta" else "Hasta Bakıcı"
-                    viewModel.login(username, password, userType)
+                    viewModel.login(username, password)
                 },
                 isLoading = uiState is LoginUiState.Loading
             )

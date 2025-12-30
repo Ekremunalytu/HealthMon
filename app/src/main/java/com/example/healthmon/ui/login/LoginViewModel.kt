@@ -18,15 +18,22 @@ class LoginViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
     val uiState: StateFlow<LoginUiState> = _uiState
 
-    fun login(username: String, password: String, userType: String) {
+    fun login(username: String, password: String) {
         viewModelScope.launch {
             _uiState.value = LoginUiState.Loading
-            val request = LoginRequest(username = username, password = password, userType = userType)
+            val request = LoginRequest(username = username, password = password)
             val result = repository.login(request)
 
             result.fold(
                 onSuccess = { response ->
-                    _uiState.value = LoginUiState.Success(userType)
+                    // userType comes from backend response
+                    val userType = response.userType ?: "patient"
+                    _uiState.value = LoginUiState.Success(
+                        userType = userType,
+                        token = response.token,
+                        patientId = response.patientId,
+                        caregiverId = response.caregiverId
+                    )
                 },
                 onFailure = { error ->
                     _uiState.value = LoginUiState.Error(error.message ?: "Unknown error")
@@ -34,11 +41,20 @@ class LoginViewModel @Inject constructor(
             )
         }
     }
+    
+    fun resetState() {
+        _uiState.value = LoginUiState.Idle
+    }
 }
 
 sealed class LoginUiState {
     object Idle : LoginUiState()
     object Loading : LoginUiState()
-    data class Success(val userType: String) : LoginUiState()
+    data class Success(
+        val userType: String,
+        val token: String? = null,
+        val patientId: String? = null,
+        val caregiverId: String? = null
+    ) : LoginUiState()
     data class Error(val message: String) : LoginUiState()
 }

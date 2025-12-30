@@ -27,37 +27,23 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.healthmon.ui.components.HealthMonBottomNavBar
 import com.example.healthmon.ui.components.HealthMonNavItems
 import com.example.healthmon.ui.components.HeartRateChart
 import com.example.healthmon.ui.theme.*
-import kotlinx.coroutines.delay
-import kotlin.random.Random
 
 @Composable
-fun PatientScreen() {
+fun PatientScreen(
+    viewModel: PatientViewModel = hiltViewModel()
+) {
     val context = LocalContext.current
     var selectedNavItem by remember { mutableStateOf("home") }
     
-    // Simulated heart rate (updates every second with small variations)
-    var heartRate by remember { mutableIntStateOf(78) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(1000L)  // Every second
-            // Small variation: ±3 BPM from current value, stay in 60-100 range
-            val change = Random.nextInt(-3, 4)
-            heartRate = (heartRate + change).coerceIn(60, 100)
-        }
-    }
-    
-    // Simulated inactivity timer (increments every minute for demo: every 5 sec)
-    var inactivityMinutes by remember { mutableIntStateOf(0) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(5000L)  // 5 sec for demo (use 60000L for real minutes)
-            inactivityMinutes++
-        }
-    }
+    // Get vital data from ViewModel
+    val vitalDataState by viewModel.vitalDataState.collectAsState()
+    val heartRate = vitalDataState.heartRate.bpm
+    val inactivityMinutes = vitalDataState.inactivity.durationMinutes
     
     // Emergency button pulse animation
     val infiniteTransition = rememberInfiniteTransition(label = "emergency_pulse")
@@ -70,6 +56,7 @@ fun PatientScreen() {
         ),
         label = "pulse"
     )
+
     
     Box(
         modifier = Modifier
@@ -133,10 +120,27 @@ fun PatientScreen() {
                     isNormal = heartRate in 60..100
                 )
                 
+                // Duration setting dialog state
+                var showDurationDialog by remember { mutableStateOf(false) }
+                var targetMinutes by remember { mutableIntStateOf(60) }
+                
+                // Duration Setting Dialog
+                if (showDurationDialog) {
+                    DurationSettingDialog(
+                        currentDuration = targetMinutes,
+                        onDismiss = { showDurationDialog = false },
+                        onConfirm = { newDuration ->
+                            targetMinutes = newDuration
+                            showDurationDialog = false
+                        }
+                    )
+                }
+                
                 // Inactivity Status Card
                 InactivityCard(
                     durationMinutes = inactivityMinutes,
-                    targetMinutes = 60
+                    targetMinutes = targetMinutes,
+                    onSettingsClick = { showDurationDialog = true }
                 )
                 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -294,7 +298,8 @@ private fun CaregiverCard(
 @Composable
 private fun InactivityCard(
     durationMinutes: Int = 0,
-    targetMinutes: Int = 60
+    targetMinutes: Int = 60,
+    onSettingsClick: () -> Unit = {}
 ) {
     val progress = (durationMinutes.toFloat() / targetMinutes).coerceIn(0f, 1f)
     val progressPercent = (progress * 100).toInt()
@@ -400,7 +405,7 @@ private fun InactivityCard(
                 color = TextSecondaryDark
             )
             Row(
-                modifier = Modifier.clickable { /* TODO */ },
+                modifier = Modifier.clickable { onSettingsClick() },
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -419,6 +424,84 @@ private fun InactivityCard(
             }
         }
     }
+}
+
+/**
+ * Dialog for setting inactivity duration threshold
+ */
+@Composable
+private fun DurationSettingDialog(
+    currentDuration: Int,
+    onDismiss: () -> Unit,
+    onConfirm: (Int) -> Unit
+) {
+    var selectedDuration by remember { mutableIntStateOf(currentDuration) }
+    val durationOptions = listOf(15, 30, 45, 60, 90, 120)
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = SurfaceCardDark,
+        title = {
+            Text(
+                text = "Hareketsizlik Süresi Ayarla",
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Uyarı almak istediğiniz süreyi seçin:",
+                    color = TextSecondaryDark,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                durationOptions.forEach { duration ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(
+                                if (selectedDuration == duration) Primary.copy(alpha = 0.2f)
+                                else Color.Transparent
+                            )
+                            .clickable { selectedDuration = duration }
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "$duration dakika",
+                            color = if (selectedDuration == duration) Primary else Color.White,
+                            fontWeight = if (selectedDuration == duration) FontWeight.Bold else FontWeight.Normal
+                        )
+                        if (selectedDuration == duration) {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = null,
+                                tint = Primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(selectedDuration) }
+            ) {
+                Text("Kaydet", color = Primary, fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("İptal", color = TextSecondaryDark)
+            }
+        }
+    )
 }
 
 @Composable
