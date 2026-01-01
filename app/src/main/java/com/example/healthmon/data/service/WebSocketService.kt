@@ -49,9 +49,29 @@ class WebSocketService @Inject constructor(
             override fun onMessage(webSocket: WebSocket, text: String) {
                 Log.d(TAG, "Received: $text")
                 try {
-                    val adapter = moshi.adapter(WebSocketVitalData::class.java)
-                    val vitalData = adapter.fromJson(text)
-                    vitalData?.let { trySend(it) }
+                    // Backend sends: {"type": "vital_data", "patient_id": "...", "data": {...}}
+                    // We need to extract the nested data
+                    val jsonObject = org.json.JSONObject(text)
+                    val type = jsonObject.optString("type", "")
+                    
+                    if (type == "vital_data" || type == "new_measurement") {
+                        // Extract from nested data object if present
+                        val dataObj = jsonObject.optJSONObject("data") ?: jsonObject
+                        
+                        val vitalData = WebSocketVitalData(
+                            patientId = jsonObject.optString("patient_id", patientId),
+                            heartRate = dataObj.optInt("heart_rate", 0),
+                            inactivitySeconds = dataObj.optInt("inactivity_seconds", 0),
+                            status = dataObj.optString("status", "NORMAL"),
+                            timestamp = dataObj.optString("timestamp", java.time.Instant.now().toString())
+                        )
+                        trySend(vitalData)
+                    } else {
+                        // Try direct parsing for simple format
+                        val adapter = moshi.adapter(WebSocketVitalData::class.java)
+                        val vitalData = adapter.fromJson(text)
+                        vitalData?.let { trySend(it) }
+                    }
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to parse WebSocket message", e)
                 }

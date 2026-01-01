@@ -117,8 +117,10 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideVitalDataRepository(mockSensorService: MockSensorService): VitalDataRepository =
-        VitalDataRepository(mockSensorService)
+    fun provideVitalDataRepository(
+        mockSensorService: MockSensorService,
+        webSocketService: WebSocketService
+    ): VitalDataRepository = VitalDataRepository(mockSensorService, webSocketService)
 
     @Provides
     @Singleton
