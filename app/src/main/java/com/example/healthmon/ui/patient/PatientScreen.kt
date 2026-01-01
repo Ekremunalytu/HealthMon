@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -25,6 +26,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -42,27 +44,20 @@ fun PatientScreen(
 ) {
     val context = LocalContext.current
     var selectedNavItem by remember { mutableStateOf("home") }
-    
-    // Start data streaming when screen opens
+
     LaunchedEffect(patientId, token) {
         if (patientId.isNotEmpty() && token.isNotEmpty()) {
             viewModel.startDataStreaming(patientId, token)
         }
     }
-    
-    // Get vital data from ViewModel
+
     val vitalDataState by viewModel.vitalDataState.collectAsState()
     val heartRate = vitalDataState.heartRate.bpm
     val inactivityMinutes = vitalDataState.inactivity.durationMinutes
-    
-    // Get data transmission state
-    val transmissionState by viewModel.dataTransmissionState.collectAsState()
-    
-    // Emergency dialog state
+
     var showEmergencyDialog by remember { mutableStateOf(false) }
     var emergencySending by remember { mutableStateOf(false) }
-    
-    // Emergency button pulse animation
+
     val infiniteTransition = rememberInfiniteTransition(label = "emergency_pulse")
     val emergencyScale by infiniteTransition.animateFloat(
         initialValue = 1f,
@@ -74,7 +69,6 @@ fun PatientScreen(
         label = "pulse"
     )
 
-    // Logout Dialog State
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     if (showLogoutDialog) {
@@ -113,7 +107,6 @@ fun PatientScreen(
         )
     }
 
-    // Emergency Confirmation Dialog
     if (showEmergencyDialog) {
         AlertDialog(
             onDismissRequest = { if (!emergencySending) showEmergencyDialog = false },
@@ -170,7 +163,6 @@ fun PatientScreen(
                             ) { success ->
                                 emergencySending = false
                                 showEmergencyDialog = false
-                                // Call 112 after sending to backend
                                 val intent = Intent(Intent.ACTION_DIAL).apply {
                                     data = Uri.parse("tel:112")
                                 }
@@ -199,8 +191,6 @@ fun PatientScreen(
             .fillMaxSize()
             .background(BackgroundDark)
     ) {
-        // ... Background boxes unchanged ...
-        // Background glow effects
         Box(
             modifier = Modifier
                 .offset(x = 200.dp, y = (-100).dp)
@@ -224,18 +214,16 @@ fun PatientScreen(
                     )
                 )
         )
-        
-        // Main content
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(bottom = 100.dp)
         ) {
-            // Header
             PatientHeader(
                 onSettingsClick = { showLogoutDialog = true }
             )
-            
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -243,59 +231,77 @@ fun PatientScreen(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // ... content ...
-                // Caregiver Card
                 CaregiverCard(
                     onCallClick = {
                         val intent = Intent(Intent.ACTION_DIAL).apply {
-                            data = Uri.parse("tel:+905551234567")  // Bakıcı numarası
+                            data = Uri.parse("tel:+905551234567")
                         }
                         context.startActivity(intent)
                     }
                 )
-                
-                // Heart Rate Chart - now dynamic!
-                HeartRateChart(
-                    heartRate = heartRate,
-                    isNormal = heartRate in 60..100
-                )
-                
-                // Duration setting dialog state
-                var showDurationDialog by remember { mutableStateOf(false) }
-                var targetMinutes by remember { mutableIntStateOf(60) }
-                
-                // Duration Setting Dialog
-                if (showDurationDialog) {
-                    DurationSettingDialog(
-                        currentDuration = targetMinutes,
-                        onDismiss = { showDurationDialog = false },
-                        onConfirm = { newDuration ->
-                            targetMinutes = newDuration
-                            showDurationDialog = false
+
+                // Heart Rate Eşik Değerleri State'leri
+                var showHeartRateDialog by remember { mutableStateOf(false) }
+                var minHeartRate by remember { mutableIntStateOf(40) }
+                var maxHeartRate by remember { mutableIntStateOf(120) }
+
+                // Inactivity Süre State'leri
+                var showInactivityDialog by remember { mutableStateOf(false) }
+                var inactivityTargetMinutes by remember { mutableIntStateOf(60) }
+
+                if (showHeartRateDialog) {
+                    HeartRateThresholdDialog(
+                        currentMin = minHeartRate,
+                        currentMax = maxHeartRate,
+                        onDismiss = { showHeartRateDialog = false },
+                        onConfirm = { newMin, newMax ->
+                            minHeartRate = newMin
+                            maxHeartRate = newMax
+                            showHeartRateDialog = false
                         }
                     )
                 }
-                
-                // Inactivity Status Card
+
+                if (showInactivityDialog) {
+                    DurationSettingDialog(
+                        currentDuration = inactivityTargetMinutes,
+                        onDismiss = { showInactivityDialog = false },
+                        onConfirm = { newDuration ->
+                            inactivityTargetMinutes = newDuration
+                            showInactivityDialog = false
+                        }
+                    )
+                }
+
+                HeartRateChart(
+                    heartRate = heartRate,
+                    isNormal = heartRate in minHeartRate..maxHeartRate
+                )
+
+                // YENİ EKLENEN KART
+                HeartRateThresholdCard(
+                    minThreshold = minHeartRate,
+                    maxThreshold = maxHeartRate,
+                    onSettingsClick = { showHeartRateDialog = true }
+                )
+
                 InactivityCard(
                     durationMinutes = inactivityMinutes,
-                    targetMinutes = targetMinutes,
-                    onSettingsClick = { showDurationDialog = true }
+                    targetMinutes = inactivityTargetMinutes,
+                    onSettingsClick = { showInactivityDialog = true }
                 )
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
-                // Emergency Button - sends SOS to backend then opens dialer for 112
+
                 EmergencyButton(
                     onClick = { showEmergencyDialog = true },
                     modifier = Modifier.scale(emergencyScale)
                 )
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
-        
-        // Bottom Navigation
+
         HealthMonBottomNavBar(
             items = HealthMonNavItems.patientItems,
             selectedRoute = selectedNavItem,
@@ -306,6 +312,7 @@ fun PatientScreen(
     }
 }
 
+// --- Diğer Composable Fonksiyonlar (PatientHeader, CaregiverCard, vb.) değişmeden kalır ---
 @Composable
 private fun PatientHeader(
     onSettingsClick: () -> Unit
@@ -330,7 +337,7 @@ private fun PatientHeader(
                 fontWeight = FontWeight.Bold
             )
         }
-        
+
         Box(
             modifier = Modifier
                 .size(44.dp)
@@ -382,7 +389,7 @@ private fun CaregiverCard(
                     fontSize = 28.sp
                 )
             }
-            
+
             // Info
             Column(
                 modifier = Modifier.weight(1f)
@@ -400,7 +407,7 @@ private fun CaregiverCard(
                     letterSpacing = 1.sp
                 )
             }
-            
+
             // Call button - now functional!
             Box(
                 modifier = Modifier
@@ -428,6 +435,193 @@ private fun CaregiverCard(
 }
 
 @Composable
+fun HeartRateThresholdCard(
+    minThreshold: Int,
+    maxThreshold: Int,
+    onSettingsClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(SurfaceCardDark)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(InfoBlue.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.MonitorHeart,
+                        contentDescription = null,
+                        tint = InfoBlue,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+                Text(
+                    text = "Nabız Eşikleri",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Text(
+                text = "$minThreshold - $maxThreshold BPM",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.White,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+        Divider(color = Color.White.copy(alpha = 0.05f))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onSettingsClick() }
+                .padding(vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Nabız uyarı limitlerini düzenle",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextSecondaryDark
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Değiştir",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Primary,
+                    fontWeight = FontWeight.Bold
+                )
+                Icon(
+                    imageVector = Icons.Filled.ArrowForward,
+                    contentDescription = null,
+                    tint = Primary,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun HeartRateThresholdDialog(
+    currentMin: Int,
+    currentMax: Int,
+    onDismiss: () -> Unit,
+    onConfirm: (min: Int, max: Int) -> Unit
+) {
+    var minBpm by remember { mutableStateOf(currentMin.toString()) }
+    var maxBpm by remember { mutableStateOf(currentMax.toString()) }
+    var minError by remember { mutableStateOf(false) }
+    var maxError by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = SurfaceCardDark,
+        title = {
+            Text(
+                "Nabız Eşikleri Ayarla",
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text(
+                    "Uyarı almak istediğiniz minimum ve maksimum nabız değerlerini girin.",
+                    color = TextSecondaryDark,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = minBpm,
+                        onValueChange = { minBpm = it.filter { c -> c.isDigit() }; minError = false },
+                        label = { Text("Min BPM") },
+                        isError = minError,
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = BackgroundDark,
+                            unfocusedContainerColor = BackgroundDark,
+                            focusedIndicatorColor = Primary,
+                            unfocusedIndicatorColor = SurfaceDark,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedLabelColor = Primary,
+                            unfocusedLabelColor = TextSecondaryDark,
+                             errorContainerColor = BackgroundDark,
+                        )
+                    )
+                    OutlinedTextField(
+                        value = maxBpm,
+                        onValueChange = { maxBpm = it.filter { c -> c.isDigit() }; maxError = false },
+                        label = { Text("Max BPM") },
+                        isError = maxError,
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = BackgroundDark,
+                            unfocusedContainerColor = BackgroundDark,
+                            focusedIndicatorColor = Primary,
+                            unfocusedIndicatorColor = SurfaceDark,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedLabelColor = Primary,
+                            unfocusedLabelColor = TextSecondaryDark,
+                            errorContainerColor = BackgroundDark,
+                        )
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val min = minBpm.toIntOrNull()
+                    val max = maxBpm.toIntOrNull()
+                    minError = min == null
+                    maxError = max == null
+                    if (min != null && max != null && min < max) {
+                        onConfirm(min, max)
+                    } else {
+                        // Show error state, maybe a Toast or text in dialog
+                        if(min != null && max != null && min >= max) minError = true
+                    }
+                }
+            ) {
+                Text("Kaydet", color = Primary, fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("İptal", color = TextSecondaryDark)
+            }
+        }
+    )
+}
+
+
+@Composable
 private fun InactivityCard(
     durationMinutes: Int = 0,
     targetMinutes: Int = 60,
@@ -436,7 +630,7 @@ private fun InactivityCard(
     val progress = (durationMinutes.toFloat() / targetMinutes).coerceIn(0f, 1f)
     val progressPercent = (progress * 100).toInt()
     val isAlert = durationMinutes >= targetMinutes
-    
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -482,8 +676,7 @@ private fun InactivityCard(
                     )
                 }
             }
-            
-            // Progress indicator
+
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -499,8 +692,7 @@ private fun InactivityCard(
                 )
             }
         }
-        
-        // Progress bar
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -515,17 +707,17 @@ private fun InactivityCard(
                     .clip(RoundedCornerShape(4.dp))
                     .background(
                         Brush.horizontalGradient(
-                            colors = if (isAlert) 
+                            colors = if (isAlert)
                                 listOf(AlertRed.copy(alpha = 0.7f), AlertRed)
-                            else 
+                            else
                                 listOf(AlertOrange.copy(alpha = 0.7f), AlertOrange)
                         )
                     )
             )
         }
-        
+
         Divider(color = Color.White.copy(alpha = 0.05f))
-        
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -558,9 +750,6 @@ private fun InactivityCard(
     }
 }
 
-/**
- * Dialog for setting inactivity duration threshold
- */
 @Composable
 private fun DurationSettingDialog(
     currentDuration: Int,
@@ -569,7 +758,7 @@ private fun DurationSettingDialog(
 ) {
     var selectedDuration by remember { mutableIntStateOf(currentDuration) }
     val durationOptions = listOf(15, 30, 45, 60, 90, 120)
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = SurfaceCardDark,
