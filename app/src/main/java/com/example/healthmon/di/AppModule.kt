@@ -119,8 +119,10 @@ object AppModule {
     @Singleton
     fun provideVitalDataRepository(
         mockSensorService: MockSensorService,
-        webSocketService: WebSocketService
-    ): VitalDataRepository = VitalDataRepository(mockSensorService, webSocketService)
+        realSensorService: com.example.healthmon.data.service.RealSensorService,
+        webSocketService: WebSocketService,
+        ingestionApiService: IngestionApiService
+    ): VitalDataRepository = VitalDataRepository(mockSensorService, realSensorService, webSocketService, ingestionApiService)
 
     @Provides
     @Singleton

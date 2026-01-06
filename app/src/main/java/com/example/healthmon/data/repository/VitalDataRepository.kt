@@ -15,6 +15,10 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
 /**
  * Repository for vital data from sensors
  * 
@@ -25,7 +29,9 @@ import javax.inject.Singleton
 @Singleton
 class VitalDataRepository @Inject constructor(
     private val mockSensorService: MockSensorService,
-    private val webSocketService: WebSocketService
+    private val realSensorService: com.example.healthmon.data.service.RealSensorService,
+    private val webSocketService: WebSocketService,
+    private val ingestionApiService: com.example.healthmon.data.service.IngestionApiService
 ) {
     companion object {
         private const val TAG = "VitalDataRepository"
@@ -34,26 +40,71 @@ class VitalDataRepository @Inject constructor(
     // Current mode (true = live backend data, false = mock data)
     private var useLiveData = false
     
+    // BLE buffer
+    private var sensorBuffer: com.example.healthmon.ble.SensorDataBuffer? = null
+    
+    private val repositoryScope = CoroutineScope(Dispatchers.IO)
+    
     // State flow for vital data
     private val _vitalDataState = MutableStateFlow(VitalDataState(isConnected = false))
     val vitalDataState: StateFlow<VitalDataState> = _vitalDataState.asStateFlow()
     
     /**
-     * Connect to backend and start receiving live vital data
+     * Connect to backend and start streaming data
+     * This handles both:
+     * 1. Receiving data from backend (WebSocket)
+     * 2. Sending local BLE sensor data to backend (Ingestion API)
+     */
+    fun startStreaming(patientId: String, token: String) {
+        useLiveData = true
+        Log.d(TAG, "Starting streaming for patient: $patientId")
+        
+        // 1. WebSocket for receiving updates (alerts, processed data)
+        webSocketService.connectToPatientVitals(patientId, token) 
+        
+        // 2. Start BLE scanning if not already connected
+        if (!realSensorService.isConnected()) {
+            realSensorService.startScan()
+        }
+        
+        // 3. Initialize buffer
+        sensorBuffer = com.example.healthmon.ble.SensorDataBuffer(patientId)
+        
+        // 4. Collect BLE data, buffer it, and send to backend
+        repositoryScope.launch {
+            realSensorService.getSensorDataFlow().collect { sensorData ->
+                // Update local UI state immediately for responsiveness
+                val currentState = _vitalDataState.value
+                _vitalDataState.value = currentState.copy(
+                    heartRate = HeartRateData(bpm = estimateBpm(sensorData.ppg)),
+                    isConnected = true
+                )
+                
+                // Buffer and send
+                val batch = sensorBuffer?.add(sensorData)
+                if (batch != null) {
+                    try {
+                        Log.d(TAG, "Sending sensor batch to backend")
+                        ingestionApiService.ingestSensorData(batch)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to send sensor data: ${e.message}")
+                    }
+                }
+            }
+        }
+    }
+    
+    private fun estimateBpm(ppg: Int): Int {
+        // Simple placeholder for UI feedback
+        return 60 + ((ppg - 1800) / 10).coerceIn(0, 100)
+    }
+
+    /**
+     * Connect to backend and start receiving live vital data (Simplified version for backward compatibility)
      */
     fun connectToBackend(patientId: String, token: String): Flow<VitalDataState> {
-        useLiveData = true
-        Log.d(TAG, "Connecting to backend for patient: $patientId")
-        
-        return webSocketService.connectToPatientVitals(patientId, token).map { wsData ->
-            val state = VitalDataState(
-                heartRate = HeartRateData(bpm = wsData.heartRate),
-                inactivity = InactivityData(durationMinutes = wsData.inactivitySeconds / 60),
-                isConnected = true
-            )
-            _vitalDataState.value = state
-            state
-        }
+        startStreaming(patientId, token)
+        return vitalDataState
     }
     
     /**
@@ -68,15 +119,29 @@ class VitalDataRepository @Inject constructor(
     }
     
     /**
-     * Get heart rate data flow (mock mode)
+     * Get heart rate data flow
      */
-    fun getHeartRateFlow(): Flow<HeartRateData> = mockSensorService.getHeartRateFlow()
+    fun getHeartRateFlow(): Flow<HeartRateData> {
+        return if (useLiveData) {
+             realSensorService.getHeartRateFlow()
+        } else {
+             mockSensorService.getHeartRateFlow()
+        }
+    }
     
     /**
-     * Get inactivity data flow (mock mode)
+     * Get inactivity data flow
      */
-    fun getInactivityFlow(): Flow<InactivityData> = mockSensorService.getInactivityFlow().map { minutes ->
-        InactivityData(durationMinutes = minutes)
+    fun getInactivityFlow(): Flow<InactivityData> {
+         return if (useLiveData) {
+             // In live mode, inactivity usually comes from backend WebSocket
+             // But we can return a placeholder or map from realSensorService if needed
+             kotlinx.coroutines.flow.flowOf(InactivityData(0)) 
+         } else {
+             mockSensorService.getInactivityFlow().map { minutes ->
+                InactivityData(durationMinutes = minutes)
+             }
+         }
     }
     
     /**
@@ -123,3 +188,4 @@ class VitalDataRepository @Inject constructor(
      */
     fun isUsingLiveData(): Boolean = useLiveData
 }
+
