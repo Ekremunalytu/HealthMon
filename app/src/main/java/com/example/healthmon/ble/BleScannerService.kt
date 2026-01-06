@@ -37,6 +37,16 @@ class BleScannerService @Inject constructor(
     private val _foundDevice = MutableStateFlow<BluetoothDevice?>(null)
     val foundDevice: StateFlow<BluetoothDevice?> = _foundDevice.asStateFlow()
     
+    // Cihaz bulunduğunda otomatik bağlantı için callback
+    private var onDeviceFoundCallback: ((BluetoothDevice) -> Unit)? = null
+    
+    /**
+     * Cihaz bulunduğunda çağrılacak callback'i ayarla
+     */
+    fun setOnDeviceFoundCallback(callback: (BluetoothDevice) -> Unit) {
+        onDeviceFoundCallback = callback
+    }
+    
     private val scanCallback = object : ScanCallback() {
         @SuppressLint("MissingPermission")
         override fun onScanResult(callbackType: Int, result: ScanResult) {
@@ -45,11 +55,15 @@ class BleScannerService @Inject constructor(
             
             Log.d(TAG, "Cihaz bulundu: $deviceName")
             
-            if (deviceName == BleConstants.DEVICE_NAME) {
+            // Case-insensitive karşılaştırma
+            if (deviceName.equals(BleConstants.DEVICE_NAME, ignoreCase = true)) {
                 Log.d(TAG, "ESP32 bulundu! ${device.address}")
                 _foundDevice.value = device
                 _scanState.value = ScanState.DeviceFound(device)
                 stopScan()
+                
+                // Otomatik bağlantı callback'i çağır
+                onDeviceFoundCallback?.invoke(device)
             }
         }
         

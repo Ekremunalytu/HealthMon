@@ -49,7 +49,9 @@ class BleConnectionManager @Inject constructor(
                 BluetoothProfile.STATE_CONNECTED -> {
                     Log.d(TAG, "ESP32'ye bağlandı!")
                     _connectionState.value = ConnectionState.Connected
-                    gatt.discoverServices()
+                    // MTU'yu artır - JSON kesintisi önlemek için 512 byte iste
+                    Log.d(TAG, "MTU artırma isteği gönderiliyor...")
+                    gatt.requestMtu(512)
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     Log.d(TAG, "Bağlantı kesildi")
@@ -58,6 +60,17 @@ class BleConnectionManager @Inject constructor(
                     bluetoothGatt = null
                 }
             }
+        }
+        
+        @SuppressLint("MissingPermission")
+        override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                Log.d(TAG, "MTU başarıyla değiştirildi: $mtu byte")
+            } else {
+                Log.w(TAG, "MTU değiştirilemedi, varsayılan kullanılacak")
+            }
+            // MTU değişikliğinden sonra servisleri keşfet
+            gatt.discoverServices()
         }
         
         @SuppressLint("MissingPermission")

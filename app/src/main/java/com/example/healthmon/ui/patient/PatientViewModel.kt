@@ -73,18 +73,16 @@ class PatientViewModel @Inject constructor(
             try {
                 vitalDataRepository.connectToBackend(patientId, token)
                     .catch { e ->
-                        Log.e(TAG, "WebSocket error, falling back to mock data", e)
+                        Log.e(TAG, "WebSocket error", e)
                         _uiState.value = _uiState.value.copy(
                             isConnecting = false,
-                            errorMessage = "Backend bağlantısı kurulamadı, simülasyon modu aktif"
+                            errorMessage = "Backend bağlantısı kurulamadı"
                         )
                         _dataTransmissionState.value = _dataTransmissionState.value.copy(
                             isConnecting = false,
                             isConnected = false,
-                            connectionStatus = "Simülasyon Modu"
+                            connectionStatus = "Bağlantı Hatası"
                         )
-                        // Fallback to mock data
-                        startMockMode()
                     }
                     .collect { state ->
                         Log.d(TAG, "Received vital data: BPM=${state.heartRate.bpm}")
@@ -111,20 +109,11 @@ class PatientViewModel @Inject constructor(
                     isConnected = false,
                     connectionStatus = "Bağlantı Hatası"
                 )
-                startMockMode()
             }
         }
     }
     
-    /**
-     * Start mock data mode (for testing without backend)
-     */
-    private fun startMockMode() {
-        viewModelScope.launch {
-            Log.d(TAG, "Starting mock data mode")
-            vitalDataRepository.startMockData()
-        }
-    }
+    // Mock mode disabled - using real BLE data only
     
     /**
      * Start sending data to backend via WebSocket

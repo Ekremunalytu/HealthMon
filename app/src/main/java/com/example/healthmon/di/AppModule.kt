@@ -29,18 +29,18 @@ object AppModule {
     // =========================================================================
     // Backend Docker Container URLs
     // =========================================================================
-    // 10.0.2.2 maps to host machine's localhost from Android Emulator
+    // Mac Hotspot IP: 192.168.2.1 (bridge100 interface)
     // Docker ports: core=8000, ingestion=8001
-    // For physical device on same WiFi, replace 10.0.2.2 with your Mac's IP
+    // Physical device connects via WiFi hotspot to Mac's Docker containers
     
     // Core service (port 8000): Auth, patient info, settings, WebSocket
-    private const val CORE_BASE_URL = "http://10.0.2.2:8000/"
+    private const val CORE_BASE_URL = "http://192.168.2.1:8000/"
     
     // Ingestion service (port 8001): Sensor data submission (/api/v1/ingest)
-    private const val INGESTION_BASE_URL = "http://10.0.2.2:8001/"
+    private const val INGESTION_BASE_URL = "http://192.168.2.1:8001/"
     
     // WebSocket URL for real-time communication
-    const val WS_BASE_URL = "ws://10.0.2.2:8000/ws"
+    const val WS_BASE_URL = "ws://192.168.2.1:8000/ws"
 
     // =========================================================================
     // Common Dependencies

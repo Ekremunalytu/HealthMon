@@ -16,7 +16,7 @@ import javax.inject.Singleton
 
 /**
  * ESP32 BLE üzerinden gerçek sensör verisi alan servis
- * MockSensorService yerine kullanılır
+ * CDTP-WATCH cihazına otomatik olarak bağlanır
  */
 @Singleton
 class RealSensorService @Inject constructor(
@@ -27,9 +27,21 @@ class RealSensorService @Inject constructor(
         private const val TAG = "RealSensorService"
     }
     
+    private var autoConnectEnabled = false
+    
     // Bağlantı durumları
     val connectionState: StateFlow<ConnectionState> = bleConnection.connectionState
     val scanState: StateFlow<ScanState> = bleScanner.scanState
+    
+    init {
+        // Cihaz bulunduğunda otomatik bağlan - callback ile race condition önleniyor
+        bleScanner.setOnDeviceFoundCallback { device ->
+            if (autoConnectEnabled) {
+                Log.d(TAG, "CDTP-WATCH bulundu! Otomatik bağlanılıyor: ${device.address}")
+                bleConnection.connect(device)
+            }
+        }
+    }
     
     /**
      * Bluetooth açık mı?
@@ -37,17 +49,21 @@ class RealSensorService @Inject constructor(
     fun isBluetoothEnabled(): Boolean = bleScanner.isBluetoothEnabled()
     
     /**
-     * ESP32 taramasını başlat
+     * ESP32 taramasını başlat ve otomatik bağlantıyı etkinleştir
      */
     fun startScan() {
-        Log.d(TAG, "ESP32 taraması başlatılıyor")
+        Log.d(TAG, "ESP32 taraması başlatılıyor (otomatik bağlantı aktif)")
+        autoConnectEnabled = true
         bleScanner.startScan()
     }
     
     /**
      * Taramayı durdur
      */
-    fun stopScan() = bleScanner.stopScan()
+    fun stopScan() {
+        autoConnectEnabled = false
+        bleScanner.stopScan()
+    }
     
     /**
      * Bulunan ESP32'ye bağlan
@@ -63,6 +79,7 @@ class RealSensorService @Inject constructor(
      * Bağlantıyı kes
      */
     fun disconnect() {
+        autoConnectEnabled = false
         bleConnection.disconnect()
         bleScanner.reset()
     }
@@ -106,3 +123,4 @@ class RealSensorService @Inject constructor(
      */
     fun isConnected(): Boolean = bleConnection.isConnected()
 }
+

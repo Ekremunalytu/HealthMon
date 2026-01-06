@@ -26,8 +26,8 @@ class WebSocketService @Inject constructor(
     
     companion object {
         private const val TAG = "WebSocketService"
-        // Use 10.0.2.2 for Android Emulator (maps to host machine's localhost)
-        private const val WS_BASE_URL = "ws://10.0.2.2:8000/ws"
+        // Mac Hotspot IP: 192.168.2.1 (physical device via WiFi hotspot)
+        private const val WS_BASE_URL = "ws://192.168.2.1:8000/ws"
         private const val NORMAL_CLOSURE_STATUS = 1000
     }
 
